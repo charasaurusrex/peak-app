@@ -550,9 +550,11 @@ body{font-family:'Montserrat',sans-serif;color:var(--text);-webkit-font-smoothin
 
 <script>
 // ── STORAGE HELPERS ──
+const _mem={};
+const _mem={};
 const S={
-  get:(k)=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},
-  set:(k,v)=>{localStorage.setItem(k,JSON.stringify(v))},
+  get:(k)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):(_mem[k]||null)}catch{return _mem[k]||null}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}_mem[k]=v},
   push:(k,v)=>{const a=S.get(k)||[];a.push(v);S.set(k,a)}
 };
 
@@ -614,16 +616,28 @@ function renderHome(){
 // ── ONBOARDING ──
 function checkOnboard(){
   document.getElementById('ob-date').max=new Date().toISOString().split('T')[0];
-  if(S.get('lastPeriodDate')){
+  const saved=S.get('lastPeriodDate');
+  if(saved){
     document.getElementById('onboard').style.display='none';
     renderHome();renderCalendar();renderYogaLog();
   }
 }
 function saveOnboard(){
-  const d=document.getElementById('ob-date').value;
-  if(!d)return;
-  S.set('lastPeriodDate',d);
-  S.set('cycleLength',33);
+  const inp=document.getElementById('ob-date');
+  const d=inp.value;
+  // Show error if no date selected
+  if(!d||d===''){
+    inp.style.borderColor='var(--pink)';
+    inp.placeholder='Please pick a date first';
+    return;
+  }
+  try{
+    S.set('lastPeriodDate',d);
+    S.set('cycleLength',33);
+  } catch(e){
+    // If localStorage fails, use in-memory fallback
+    window._peakData={'lastPeriodDate':d,'cycleLength':33};
+  }
   document.getElementById('onboard').style.display='none';
   renderHome();renderCalendar();
 }
