@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Prana">
+<meta name="theme-color" content="#1B2D4F">
+<link rel="manifest" href="manifest.json">
+<title>Prana</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --navy:#1B2D4F;--navy-bg:#EEF1F7;
+  --pink:#E8829A;--pink-bg:#FFF0F3;--pink-dark:#B5445E;
+  --green:#7CB342;--green-bg:#F2F8E8;--green-dark:#4A7A10;
+  --amber:#E6A817;--amber-bg:#FFF8E6;--amber-dark:#9A6800;
+  --purple:#7B68C8;--purple-bg:#F2F0FC;--purple-dark:#4A3A9A;
+  --text:#1B2D4F;--text2:#5A6680;--text3:#9AA0B0;
+  --bg:#F8F9FB;--white:#FFFFFF;--border:#E4E8F0;
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'Montserrat',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+.app{max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden}
+.screen.active{display:flex}
+.scroll{flex:1;overflow-y:auto;padding:14px 18px;padding-bottom:calc(80px + var(--sab));display:flex;flex-direction:column;gap:10px}
+.scroll::-webkit-scrollbar{display:none}
+.topbar{padding:calc(14px + var(--sat)) 18px 12px;display:flex;justify-content:space-between;align-items:center;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0}
+.wm{font-size:17px;font-weight:700;color:var(--navy);letter-spacing:1.5px;text-transform:uppercase}
+.tr{font-size:11px;font-weight:500;color:var(--text3)}
+.pb{border-radius:16px;padding:18px 20px;position:relative;overflow:hidden;flex-shrink:0;margin:14px 18px 0}
+.pb.follicular{background:var(--green-bg);border:1px solid rgba(124,179,66,0.3)}
+.pb.ovulatory{background:var(--amber-bg);border:1px solid rgba(230,168,23,0.3)}
+.pb.luteal{background:var(--purple-bg);border:1px solid rgba(123,104,200,0.3)}
+.pb.menstrual{background:var(--pink-bg);border:1px solid rgba(232,130,154,0.3)}
+.pb-ey{font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:5px}
+.pb-h{font-size:19px;font-weight:700;margin-bottom:3px;line-height:1.2}
+.pb-s{font-size:12px;line-height:1.5;opacity:0.85}
+.pb-d{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;opacity:0.4;text-align:right;line-height:1.5}
+.follicular .pb-ey,.follicular .pb-h,.follicular .pb-s,.follicular .pb-d{color:var(--green-dark)}
+.ovulatory .pb-ey,.ovulatory .pb-h,.ovulatory .pb-s,.ovulatory .pb-d{color:var(--amber-dark)}
+.luteal .pb-ey,.luteal .pb-h,.luteal .pb-s,.luteal .pb-d{color:var(--purple-dark)}
+.menstrual .pb-ey,.menstrual .pb-h,.menstrual .pb-s,.menstrual .pb-d{color:var(--pink-dark)}
+.card{background:var(--white);border-radius:14px;padding:16px;border:1px solid var(--border)}
+.ey{font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.ct{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.3}
+.cb{font-size:12px;color:var(--text2);line-height:1.6}
+.cr{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.chip{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.cn{background:var(--navy);color:#fff}
+.cg{background:var(--green-bg);color:var(--green-dark);border:1px solid rgba(124,179,66,0.4)}
+.cpk{background:var(--pink-bg);color:var(--pink-dark);border:1px solid rgba(232,130,154,0.4)}
+.ca{background:var(--amber-bg);color:var(--amber-dark);border:1px solid rgba(230,168,23,0.4)}
+.cp{background:var(--purple-bg);color:var(--purple-dark);border:1px solid rgba(123,104,200,0.4)}
+.btn{display:block;width:100%;padding:12px;border-radius:10px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;margin-top:12px;letter-spacing:0.02em}
+.bn{background:var(--navy);color:#fff}
+.bo{background:transparent;border:1.5px solid var(--border);color:var(--text2)}
+.bd{background:var(--green-bg);color:var(--green-dark);border:1.5px solid var(--green)}
+.bpk{background:var(--pink-bg);color:var(--pink-dark);border:1.5px solid rgba(232,130,154,0.5)}
+.nav{display:flex;background:var(--white);border-top:1px solid var(--border);padding:8px 0;padding-bottom:calc(8px + var(--sab));flex-shrink:0}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:transparent;cursor:pointer;padding:4px 0;font-family:'Montserrat',sans-serif}
+.ni{font-size:19px;color:var(--text3);line-height:1}
+.nl{font-size:9px;font-weight:600;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase}
+.np{width:4px;height:4px;border-radius:2px;background:transparent;margin:1px auto 0}
+.nb.active .ni,.nb.active .nl{color:var(--navy)}
+.nb.active .np{background:var(--navy)}
+.ii{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.ii:last-child{border-bottom:none;padding-bottom:0}
+.ib{width:3px;border-radius:2px;flex-shrink:0;align-self:stretch;min-height:16px}
+.it{font-size:12px;color:var(--text2);line-height:1.6}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sb{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:12px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;font-family:'Montserrat',sans-serif}
+.si{font-size:22px;line-height:1}
+.sl{font-size:10px;font-weight:600;color:var(--text2);text-align:center;line-height:1.3}
+.sb.taken{background:var(--green-bg);border-color:rgba(124,179,66,0.6)}
+.sb.taken .sl{color:var(--green-dark)}
+.sb.remind{background:var(--pink-bg);border-color:rgba(232,130,154,0.5)}
+.sb.remind .sl{color:var(--pink-dark)}
+.eg{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-top:10px}
+.eb{padding:10px 4px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;text-align:center}
+.eb.sel{background:var(--navy);border-color:var(--navy);color:#fff}
+.tr-row{display:flex;gap:6px}
+.tab{flex:1;padding:9px 4px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;text-align:center}
+.tab.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.tp{display:none;flex-direction:column;gap:10px}
+.tp.active{display:flex}
+.pw{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.pill{padding:8px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer}
+.pill.sel{background:var(--navy);border-color:var(--navy);color:#fff}
+.gw{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.gc{width:48px;height:48px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.gc.sent{background:var(--green-bg);border-color:var(--green);color:var(--green-dark)}
+.gc.project{background:var(--purple-bg);border-color:var(--purple);color:var(--purple-dark)}
+.ta{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-family:'Montserrat',sans-serif;font-size:12px;color:var(--text);background:var(--white);resize:none;min-height:80px;line-height:1.6;margin-top:10px}
+.ta:focus,.ti:focus{outline:none;border-color:var(--navy)}
+.ti{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-family:'Montserrat',sans-serif;font-size:12px;color:var(--text);background:var(--white);margin-top:8px}
+.pl{display:flex;flex-direction:column}
+.pr{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.pr:last-child{border-bottom:none;padding-bottom:0}
+.pn{font-size:12px;font-weight:500;color:var(--text)}
+.pd{font-size:11px;font-weight:500;color:var(--text3)}
+.sug{border-radius:14px;padding:16px}
+.sug.follicular{background:var(--green-bg);border:1px solid rgba(124,179,66,0.3)}
+.sug.ovulatory{background:var(--amber-bg);border:1px solid rgba(230,168,23,0.3)}
+.sug.luteal{background:var(--purple-bg);border:1px solid rgba(123,104,200,0.3)}
+.sug.menstrual{background:var(--pink-bg);border:1px solid rgba(232,130,154,0.3)}
+.se{font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:6px}
+.st{font-size:14px;font-weight:700;margin-bottom:6px;line-height:1.3}
+.ss{font-size:12px;line-height:1.6;opacity:0.85}
+.follicular .se,.follicular .st,.follicular .ss{color:var(--green-dark)}
+.ovulatory .se,.ovulatory .st,.ovulatory .ss{color:var(--amber-dark)}
+.luteal .se,.luteal .st,.luteal .ss{color:var(--purple-dark)}
+.menstrual .se,.menstrual .st,.menstrual .ss{color:var(--pink-dark)}
+.wb{background:var(--pink-bg);border:1px solid rgba(232,130,154,0.4);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.wt{font-size:12px;font-weight:500;color:var(--pink-dark);line-height:1.5}
+.mn{font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.3}
+.mc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.mw{font-size:12px;color:var(--text2);line-height:1.6;border-left:3px solid var(--green);padding-left:12px;margin-bottom:14px}
+.wi{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;gap:12px;align-items:center}
+.wd{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.wti{font-size:13px;font-weight:600;color:var(--text);line-height:1.3}
+.ws{font-size:11px;color:var(--text3);margin-top:2px}
+.cg2{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
+.ch{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);text-align:center;padding:4px 0}
+.cd{border-radius:8px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:var(--bg);border:1px solid transparent;cursor:pointer}
+.cd.today{border-color:var(--navy)}
+.cdn{font-size:11px;font-weight:600;color:var(--text2)}
+.cd.today .cdn{color:var(--navy);font-weight:700}
+.cdd{display:flex;gap:2px}
+.dot{width:4px;height:4px;border-radius:2px}
+.ib2{border-radius:12px;padding:13px 15px;font-size:12px;line-height:1.6;font-weight:500}
+.ig{background:var(--green-bg);color:var(--green-dark);border:1px solid rgba(124,179,66,0.3)}
+.ipu{background:var(--purple-bg);color:var(--purple-dark);border:1px solid rgba(123,104,200,0.3)}
+.period-btn{width:100%;padding:10px;border-radius:10px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;cursor:pointer;text-align:center;border:1.5px solid var(--border);background:var(--white);color:var(--text2);margin-top:10px}
+.period-btn.on{background:var(--pink-bg);border-color:var(--pink);color:var(--pink-dark)}
+.ob{position:fixed;inset:0;background:var(--white);z-index:200;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 28px;gap:16px}
+.ob h1{font-size:26px;font-weight:700;color:var(--navy);text-align:center;line-height:1.2}
+.ob p{font-size:13px;color:var(--text2);text-align:center;line-height:1.7}
+.ob label{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);align-self:flex-start;width:100%}
+.di{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:14px;font-family:'Montserrat',sans-serif;font-size:15px;color:var(--text);background:var(--white)}
+.di:focus{outline:none;border-color:var(--navy)}
+.em{font-size:12px;color:var(--pink-dark);display:none;text-align:center;font-weight:500}
+.mo{display:none;position:fixed;inset:0;background:rgba(27,45,79,0.35);z-index:150;align-items:flex-end;justify-content:center}
+.mo.open{display:flex}
+.mb{background:var(--white);border-radius:20px 20px 0 0;padding:24px 20px;padding-bottom:calc(24px + var(--sab));width:100%;max-width:430px}
+.mb h3{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.mb p{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px}
+.mbc{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+</style>
+</head>
+<body>
+
+<div class="ob" id="ob">
+  <div style="font-size:48px">🌿</div>
+  <h1>Welcome to Prana</h1>
+  <p>Your personal movement and lifestyle app. Enter the first day of your last period so Prana can track your cycle automatically.</p>
+  <label>First day of your last period</label>
+  <input class="di" type="date" id="ob-date">
+  <div class="em" id="ob-err">Please select a date first</div>
+  <button class="btn bn" style="width:100%;margin-top:4px;padding:14px;font-size:14px" id="ob-btn">Get started</button>
+  <p style="font-size:11px;color:var(--text3)">You can update this anytime from the home screen</p>
+</div>
+
+<div class="mo" id="mo-period">
+  <div class="mb">
+    <h3>Log period start</h3>
+    <p>Tap to mark today as the start of your period. This updates your cycle phase automatically.</p>
+    <button class="btn bpk" id="period-confirm">My period started today</button>
+    <button class="btn bo" id="period-cancel" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<div class="mo" id="mo-day">
+  <div class="mb">
+    <div class="mbc">
+      <h3 id="day-title">Day</h3>
+      <button id="day-close" style="border:none;background:none;font-size:22px;color:var(--text3);cursor:pointer">×</button>
+    </div>
+    <div id="day-content"></div>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- HOME -->
+<div class="screen active" id="s-home">
+  <div class="topbar"><div class="wm">Prana</div><div class="tr" id="hd"></div></div>
+  <div id="pb-home" class="pb follicular" style="flex-shrink:0">
+    <div class="pb-ey" id="pb-ey">Follicular phase</div>
+    <div class="pb-h" id="pb-h">Build &amp; energise</div>
+    <div class="pb-s" id="pb-s">Oestrogen rising. Your best week for hard problems.</div>
+    <div class="pb-d" id="pb-d">Day 1</div>
+  </div>
+  <div class="scroll">
+    <div class="card">
+      <div class="ey">Supplements</div>
+      <div class="sg">
+        <button class="sb" id="sc" onclick="tapS('sc')"><span class="si">⬡</span><span class="sl">Creatine &amp; Magnesium</span></button>
+        <button class="sb remind" id="si" onclick="tapS('si')"><span class="si">!</span><span class="sl">Iron — take today</span></button>
+      </div>
+      <button class="period-btn" id="pb-log">🩸 Log period start</button>
+    </div>
+    <div class="card">
+      <div class="cr">
+        <div style="flex:1"><div class="ey">Today's movement</div><div class="ct" id="hmt">Bouldering session</div><div class="cb" id="hmb">Follicular phase — coordination at its peak.</div></div>
+        <span class="chip cn" id="hmc">Climbing</span>
+      </div>
+      <button class="btn bn" onclick="goTo('s-move')">View session →</button>
+    </div>
+    <div class="card">
+      <div class="cr">
+        <div style="flex:1"><div class="ey">Tonight's meal</div><div class="ct">Tofu with quinoa and roasted veg</div><div class="cb">High protein, high fibre, endlessly adaptable.</div></div>
+        <span class="chip cg">Gut-friendly</span>
+      </div>
+      <button class="btn bo" onclick="goTo('s-food')">Meal bank →</button>
+    </div>
+    <div class="card">
+      <div class="ey">Body insight · <span id="hdl">Day 1</span></div>
+      <div id="hi"></div>
+    </div>
+    <div class="card">
+      <div class="ct" style="font-size:14px">How's your energy today?</div>
+      <div class="eg">
+        <button class="eb" onclick="selE(this,'low')">Low</button>
+        <button class="eb" onclick="selE(this,'okay')">Okay</button>
+        <button class="eb" onclick="selE(this,'good')">Good</button>
+        <button class="eb" onclick="selE(this,'great')">Great</button>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nb active" onclick="goTo('s-home')"><div class="ni">⌂</div><div class="nl">Home</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-move')"><div class="ni">◬</div><div class="nl">Move</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-yoga')"><div class="ni">❋</div><div class="nl">Yoga</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-food')"><div class="ni">◉</div><div class="nl">Eat</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-log')"><div class="ni">◫</div><div class="nl">Log</div><div class="np"></div></button>
+  </div>
+</div>
+
+<!-- MOVE -->
+<div class="screen" id="s-move">
+  <div class="topbar"><div class="wm">Movement</div><div class="tr" id="move-tr">Follicular</div></div>
+  <div class="scroll">
+    <div class="wb"><span style="font-size:16px">⚠</span><div class="wt">Wrist cyst active — open hand grip only, no full crimps. Surgeon in June.</div></div>
+    <div class="tr-row" id="mv-tabs">
+      <button class="tab active" onclick="swTab('mv-tabs','mt-c',this)">Climbing</button>
+      <button class="tab" onclick="swTab('mv-tabs','mt-o',this)">Gym / Walk</button>
+      <button class="tab" onclick="swTab('mv-tabs','mt-a',this)">Antagonist</button>
+    </div>
+    <div class="tp active" id="mt-c">
+      <div class="card">
+        <div class="ct" style="margin-bottom:8px">Session type</div>
+        <div class="pw">
+          <button class="pill" onclick="togP(this)">Social climb</button>
+          <button class="pill" onclick="togP(this)">Projecting</button>
+          <button class="pill" onclick="togP(this)">Overhang heavy</button>
+          <button class="pill" onclick="togP(this)">Slab focus</button>
+          <button class="pill" onclick="togP(this)">Footwork drills</button>
+          <button class="pill" onclick="togP(this)">Low energy</button>
+          <button class="pill" onclick="togP(this)">High energy</button>
+          <button class="pill" onclick="togP(this)">Technique</button>
+          <button class="pill" onclick="togP(this)">Comp style</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct" style="margin-bottom:4px">Grade log</div>
+        <div class="cb">Once = sent &nbsp;·&nbsp; Twice = project</div>
+        <div class="gw">
+          <button class="gc" onclick="cycG(this)">V2</button><button class="gc" onclick="cycG(this)">V3</button>
+          <button class="gc" onclick="cycG(this)">V3</button><button class="gc" onclick="cycG(this)">V4</button>
+          <button class="gc" onclick="cycG(this)">V4</button><button class="gc" onclick="cycG(this)">V5</button>
+          <button class="gc" onclick="cycG(this)">V5</button><button class="gc" onclick="cycG(this)">V6</button>
+          <button class="gc" onclick="cycG(this)">V6</button><button class="gc" onclick="cycG(this)">V7</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">Session reflection</div>
+        <textarea class="ta" id="cn" placeholder="How did it feel? Breakthroughs, frustrations, things to remember…"></textarea>
+        <button class="btn bn" id="lcb" onclick="logClimb()">Log session</button>
+      </div>
+      <div class="sug follicular" id="mv-sug">
+        <div class="se" id="sug-ey">Suggested · Follicular</div>
+        <div class="st" id="sug-t">Technical + one project attempt</div>
+        <div class="ss" id="sug-s">Coordination is at its peak. Warm up on V3s, 20 min footwork on slab, then 3–4 focused project attempts. Open hand grip on right hand.</div>
+      </div>
+    </div>
+    <div class="tp" id="mt-o">
+      <div class="card">
+        <div class="ct" style="margin-bottom:8px">Activity</div>
+        <div class="pw">
+          <button class="pill" onclick="togP(this)">Walking</button>
+          <button class="pill" onclick="togP(this)">Gym session</button>
+          <button class="pill" onclick="togP(this)">Run</button>
+          <button class="pill" onclick="togP(this)">Cycle</button>
+          <button class="pill" onclick="togP(this)">Swimming</button>
+          <button class="pill" onclick="togP(this)">Other</button>
+        </div>
+        <textarea class="ta" id="on" placeholder="Describe what you did…"></textarea>
+        <button class="btn bn" id="lob" onclick="logOther()">Log activity</button>
+      </div>
+      <div class="card">
+        <div class="ey">This week</div>
+        <div class="pl">
+          <div class="pr"><span class="pn">Mon — Bouldering</span><span class="pd" style="color:var(--green-dark);font-weight:700">Today</span></div>
+          <div class="pr"><span class="pn">Tue — Yoga</span><span class="pd">Tomorrow</span></div>
+          <div class="pr"><span class="pn">Thu — Bouldering</span><span class="pd">Rest Wed</span></div>
+          <div class="pr"><span class="pn">Sat — Walk + yoga</span><span class="pd">Active rest</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="tp" id="mt-a">
+      <div class="card">
+        <div class="ey">15 min post-climb · non-negotiable</div>
+        <div class="cb" style="margin-bottom:14px">Keeps your wrist, elbow and shoulder healthy long-term.</div>
+        <div class="pl">
+          <div class="pr"><span class="pn">Wrist extension curls</span><span class="pd">3 × 15</span></div>
+          <div class="pr"><span class="pn">Theraband shoulder ext. rotation</span><span class="pd">3 × 15 each</span></div>
+          <div class="pr"><span class="pn">Reverse wrist curls</span><span class="pd">3 × 12</span></div>
+          <div class="pr"><span class="pn">Scapular push-ups</span><span class="pd">2 × 10</span></div>
+          <div class="pr"><span class="pn">Finger extension (rubber band)</span><span class="pd">3 × 20</span></div>
+          <div class="pr"><span class="pn">Pronation / supination</span><span class="pd">2 × 10 each</span></div>
+        </div>
+        <button class="btn bn" id="lab" onclick="mDone('lab')">Mark done</button>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nb" onclick="goTo('s-home')"><div class="ni">⌂</div><div class="nl">Home</div><div class="np"></div></button>
+    <button class="nb active" onclick="goTo('s-move')"><div class="ni">◬</div><div class="nl">Move</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-yoga')"><div class="ni">❋</div><div class="nl">Yoga</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-food')"><div class="ni">◉</div><div class="nl">Eat</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-log')"><div class="ni">◫</div><div class="nl">Log</div><div class="np"></div></button>
+  </div>
+</div>
+
+<!-- YOGA -->
+<div class="screen" id="s-yoga">
+  <div class="topbar"><div class="wm">Yoga</div><div class="tr" id="yoga-tr">Follicular</div></div>
+  <div class="scroll">
+    <div class="card">
+      <div class="ey">Log a class</div>
+      <div class="cb" style="margin-bottom:4px">Name it, paste a YouTube link, or describe what you did.</div>
+      <input class="ti" id="yi" type="text" placeholder="e.g. Adriene — morning flow 30 min…">
+      <button class="btn bn" id="lyb" onclick="logYoga()">Add to log</button>
+    </div>
+    <div class="card" id="ylc" style="display:none">
+      <div class="ey">Recent classes</div>
+      <div id="yll"></div>
+    </div>
+    <div class="sug follicular">
+      <div class="se">Follicular — Strength flow</div>
+      <div class="st">Hip mobility and core for climbing</div>
+      <div class="pl" style="margin-top:10px">
+        <div class="pr" style="border-color:rgba(124,179,66,0.25)"><span class="pn" style="color:var(--green-dark)">Child's pose + breath</span><span class="pd" style="color:var(--green-dark);opacity:0.7">2 min</span></div>
+        <div class="pr" style="border-color:rgba(124,179,66,0.25)"><span class="pn" style="color:var(--green-dark)">Cat-cow</span><span class="pd" style="color:var(--green-dark);opacity:0.7">1 min</span></div>
+        <div class="pr" style="border-color:rgba(124,179,66,0.25)"><span class="pn" style="color:var(--green-dark)">Downward dog → plank flow</span><span class="pd" style="color:var(--green-dark);opacity:0.7">3 min</span></div>
+        <div class="pr" style="border-color:rgba(124,179,66,0.25)"><span class="pn" style="color:var(--green-dark)">Warrior I + II</span><span class="pd" style="color:var(--green-dark);opacity:0.7">3 min each</span></div>
+        <div class="pr" style="border-color:rgba(124,179,66,0.25)"><span class="pn" style="color:var(--green-dark)">Chair pose hold</span><span class="pd" style="color:var(--green-dark);opacity:0.7">5 breaths × 3</span></div>
+        <div class="pr" style="border-color:rgba(124,179,66,0.25)"><span class="pn" style="color:var(--green-dark)">Low lunge + hip flexor</span><span class="pd" style="color:var(--green-dark);opacity:0.7">2 min each</span></div>
+        <div class="pr" style="border-color:rgba(124,179,66,0.25)"><span class="pn" style="color:var(--green-dark)">Pigeon pose</span><span class="pd" style="color:var(--green-dark);opacity:0.7">90 sec each</span></div>
+        <div class="pr" style="border:none;padding-bottom:0"><span class="pn" style="color:var(--green-dark)">Savasana</span><span class="pd" style="color:var(--green-dark);opacity:0.7">3 min</span></div>
+      </div>
+    </div>
+    <div class="sug luteal">
+      <div class="se">Luteal — Restore &amp; ground</div>
+      <div class="st">Reduces cortisol, eases jaw and shoulder tension</div>
+      <div class="pl" style="margin-top:10px">
+        <div class="pr" style="border-color:rgba(123,104,200,0.2)"><span class="pn" style="color:var(--purple-dark)">Legs up the wall</span><span class="pd" style="color:var(--purple-dark);opacity:0.7">5 min</span></div>
+        <div class="pr" style="border-color:rgba(123,104,200,0.2)"><span class="pn" style="color:var(--purple-dark)">Supported bridge</span><span class="pd" style="color:var(--purple-dark);opacity:0.7">3 min</span></div>
+        <div class="pr" style="border-color:rgba(123,104,200,0.2)"><span class="pn" style="color:var(--purple-dark)">Butterfly pose</span><span class="pd" style="color:var(--purple-dark);opacity:0.7">3 min</span></div>
+        <div class="pr" style="border-color:rgba(123,104,200,0.2)"><span class="pn" style="color:var(--purple-dark)">Seated forward fold</span><span class="pd" style="color:var(--purple-dark);opacity:0.7">2 min</span></div>
+        <div class="pr" style="border-color:rgba(123,104,200,0.2)"><span class="pn" style="color:var(--purple-dark)">Jaw + neck release</span><span class="pd" style="color:var(--purple-dark);opacity:0.7">2 min</span></div>
+        <div class="pr" style="border:none;padding-bottom:0"><span class="pn" style="color:var(--purple-dark)">Yoga nidra</span><span class="pd" style="color:var(--purple-dark);opacity:0.7">10 min</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nb" onclick="goTo('s-home')"><div class="ni">⌂</div><div class="nl">Home</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-move')"><div class="ni">◬</div><div class="nl">Move</div><div class="np"></div></button>
+    <button class="nb active" onclick="goTo('s-yoga')"><div class="ni">❋</div><div class="nl">Yoga</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-food')"><div class="ni">◉</div><div class="nl">Eat</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-log')"><div class="ni">◫</div><div class="nl">Log</div><div class="np"></div></button>
+  </div>
+</div>
+
+<!-- FOOD -->
+<div class="screen" id="s-food">
+  <div class="topbar"><div class="wm">Eat</div><div class="tr">Plant-based · Gut-friendly</div></div>
+  <div class="scroll">
+    <div class="ib2 ig">All meals are plant-based, low-fructose, high protein and fibre, and genuinely easy. Shuffle to find something for today.</div>
+    <div class="tr-row" id="fd-tabs">
+      <button class="tab active" onclick="swTab('fd-tabs','ft-b',this)">Breakfast</button>
+      <button class="tab" onclick="swTab('fd-tabs','ft-l',this)">Lunch</button>
+      <button class="tab" onclick="swTab('fd-tabs','ft-d',this)">Dinner</button>
+    </div>
+    <div class="tp active" id="ft-b">
+      <div class="card"><div class="ey">Breakfast idea</div><div class="mn" id="mn-b">Eggs on sourdough with spinach</div><div class="mc" id="mc-b"><span class="chip cn">High protein</span><span class="chip cg">Gut-friendly</span><span class="chip ca">5 min</span></div><div class="mw" id="mw-b">Eggs provide choline for hormone metabolism and complete protein. Sourdough is fermented — easier on your gut.</div><button class="btn bo" onclick="shufM('b')">↻ Different idea</button></div>
+    </div>
+    <div class="tp" id="ft-l">
+      <div class="card"><div class="ey">Lunch idea</div><div class="mn" id="mn-l">Tofu quinoa bowl (last night's leftovers)</div><div class="mc" id="mc-l"><span class="chip cn">High protein</span><span class="chip cg">Meal prep</span><span class="chip ca">2 min</span></div><div class="mw" id="mw-l">Make extra at dinner — your easiest lunch. Quinoa is a complete protein. Reheats well.</div><button class="btn bo" onclick="shufM('l')">↻ Different idea</button></div>
+    </div>
+    <div class="tp" id="ft-d">
+      <div class="card"><div class="ey">Dinner idea</div><div class="mn" id="mn-d">Tofu with quinoa and roasted veg</div><div class="mc" id="mc-d"><span class="chip cn">High protein</span><span class="chip cg">High fibre</span><span class="chip ca">20 min</span></div><div class="mw" id="mw-d">Your go-to — high protein, high fibre, easy to adapt. Make extra for tomorrow's lunch.</div><button class="btn bo" onclick="shufM('d')">↻ Different idea</button></div>
+    </div>
+    <div class="card">
+      <div class="ey">Shopping anchors</div>
+      <div class="cb" style="margin-bottom:10px">Keep these stocked and you can always make something decent without deciding.</div>
+      <div class="pw" style="gap:6px">
+        <span class="pill" style="cursor:default">Eggs</span><span class="pill" style="cursor:default">Tofu</span><span class="pill" style="cursor:default">Chickpeas</span><span class="pill" style="cursor:default">Lentils</span><span class="pill" style="cursor:default">Quinoa</span><span class="pill" style="cursor:default">Oats</span><span class="pill" style="cursor:default">Edamame</span><span class="pill" style="cursor:default">Frozen veg</span><span class="pill" style="cursor:default">Greek yoghurt</span><span class="pill" style="cursor:default">Peanut butter</span><span class="pill" style="cursor:default">Miso paste</span><span class="pill" style="cursor:default">Sourdough</span><span class="pill" style="cursor:default">Pumpkin seeds</span><span class="pill" style="cursor:default">Dark chocolate</span><span class="pill" style="cursor:default">Halloumi</span><span class="pill" style="cursor:default">Black beans</span><span class="pill" style="cursor:default">Blueberries</span>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nb" onclick="goTo('s-home')"><div class="ni">⌂</div><div class="nl">Home</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-move')"><div class="ni">◬</div><div class="nl">Move</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-yoga')"><div class="ni">❋</div><div class="nl">Yoga</div><div class="np"></div></button>
+    <button class="nb active" onclick="goTo('s-food')"><div class="ni">◉</div><div class="nl">Eat</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-log')"><div class="ni">◫</div><div class="nl">Log</div><div class="np"></div></button>
+  </div>
+</div>
+
+<!-- LOG -->
+<div class="screen" id="s-log">
+  <div class="topbar"><div class="wm">Log</div><div class="tr" id="log-mo"></div></div>
+  <div class="scroll">
+    <div class="card">
+      <div class="ey">This month</div>
+      <div class="cg2" id="cal-h"></div>
+      <div class="cg2" id="cal-g" style="margin-top:4px"></div>
+    </div>
+    <div class="card">
+      <div class="ey">Legend</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px">
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;background:var(--green);border-radius:2px"></div><span style="font-size:11px;color:var(--text2)">Session</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;background:var(--purple);border-radius:2px"></div><span style="font-size:11px;color:var(--text2)">Yoga</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;background:var(--amber);border-radius:2px"></div><span style="font-size:11px;color:var(--text2)">Supplements</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;background:var(--pink);border-radius:2px"></div><span style="font-size:11px;color:var(--text2)">Period</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ey">Energy this week</div>
+      <div id="el-display" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><span style="font-size:12px;color:var(--text3)">Check in each day on the home screen to see patterns here.</span></div>
+    </div>
+    <div class="card">
+      <div class="ey">Wins</div>
+      <div class="ib2 ipu" style="margin-bottom:12px">Wins are about what your body can do — not how it looks.</div>
+      <div id="wl" style="display:flex;flex-direction:column;gap:8px">
+        <div class="wi"><div class="wd" style="background:var(--green-bg)">◬</div><div><div class="wti">Logged 2 bouldering sessions this week</div><div class="ws">Consistency · building the base</div></div></div>
+        <div class="wi"><div class="wd" style="background:var(--purple-bg)">❋</div><div><div class="wti">Added a yoga class to your log</div><div class="ws">Recovery · body connection</div></div></div>
+      </div>
+      <textarea class="ta" id="win-i" placeholder="Something your body did today that felt good…"></textarea>
+      <button class="btn bn" id="aw-btn" onclick="addWin()">Add win</button>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nb" onclick="goTo('s-home')"><div class="ni">⌂</div><div class="nl">Home</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-move')"><div class="ni">◬</div><div class="nl">Move</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-yoga')"><div class="ni">❋</div><div class="nl">Yoga</div><div class="np"></div></button>
+    <button class="nb" onclick="goTo('s-food')"><div class="ni">◉</div><div class="nl">Eat</div><div class="np"></div></button>
+    <button class="nb active" onclick="goTo('s-log')"><div class="ni">◫</div><div class="nl">Log</div><div class="np"></div></button>
+  </div>
+</div>
+
+</div>
+
+<script>
+var _m = {};
+function sG(k){try{var v=localStorage.getItem(k);return v?JSON.parse(v):(_m[k]||null);}catch(e){return _m[k]||null;}}
+function sS(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}_m[k]=v;}
+function sP(k,v){var a=sG(k)||[];a.push(v);sS(k,a);}
+
+var PH = {
+  menstrual:{cls:'menstrual',lbl:'Menstrual phase',h:'Rest & restore',s:'Your body is working hard. Gentle movement and warmth today.',mt:'Gentle yoga or rest',mb:'This is not a climbing day. Prioritise rest and a short restorative yoga session if you feel like it.',mc:'Rest',mcc:'cpk',st:'Restorative movement only',ss:'Walking, gentle yoga, or full rest. Anything that feels good in your body right now.',ins:[{c:'var(--pink)',t:'Progesterone and oestrogen at their lowest — reduced energy is completely normal'},{c:'var(--purple)',t:'Iron levels drop during menstruation — most important time to take your iron supplement'},{c:'var(--navy)',t:'Warmth helps: warm meals, hot water bottle, the luteal yoga sequence'}]},
+  follicular:{cls:'follicular',lbl:'Follicular phase',h:'Build & energise',s:'Oestrogen rising. Your best week for hard problems and new skills.',mt:'Bouldering session',mb:'Follicular phase — coordination at its peak. Good session for technical problems and project attempts.',mc:'Climbing',mcc:'cn',st:'Technical + one project attempt',ss:'Coordination is strong this week. Warm up on V3s, 20 min footwork on slab, then 3-4 focused project attempts. Open hand grip on right hand.',ins:[{c:'var(--green)',t:'Oestrogen rising — strength, coordination and motivation all building this week'},{c:'var(--purple)',t:'Good time to try a project problem — pain tolerance and confidence are higher'},{c:'var(--navy)',t:'Pumpkin seeds and leafy greens support oestrogen metabolism this week'}]},
+  ovulatory:{cls:'ovulatory',lbl:'Ovulatory phase',h:'Peak performance',s:'Oestrogen at its peak. Your strongest, sharpest week.',mt:'High intensity session',mb:'Ovulatory phase — your peak performance window. Go for your hardest problems. Strength and coordination are at maximum.',mc:'Peak week',mcc:'ca',st:'Go for your project grade',ss:'This is genuinely your strongest week. Attempt your project or try a grade up. Warm up thoroughly — ligament laxity is slightly higher around ovulation.',ins:[{c:'var(--amber)',t:'Oestrogen peaking — your strongest week of the month physically and mentally'},{c:'var(--green)',t:'Ideal time to attempt your project grade or try a new movement pattern'},{c:'var(--pink)',t:'Ligament laxity increases slightly — warm up thoroughly before hard sessions'}]},
+  luteal:{cls:'luteal',lbl:'Luteal phase',h:'Sustain & recover',s:'Progesterone rising. Prioritise sleep, warmth and magnesium.',mt:'Moderate climbing or yoga',mb:'Luteal phase — energy may fluctuate. Keep sessions moderate. Swap a climbing session for yoga if your body is asking for it.',mc:'Restore',mcc:'cp',st:'Moderate intensity, listen in',ss:'Climb at a comfortable intensity, finish before exhaustion, prioritise antagonist work. Add the luteal yoga sequence on harder days.',ins:[{c:'var(--purple)',t:'Progesterone rising — cravings and low mood can appear days 21-28. This is hormonal, not a character flaw'},{c:'var(--amber)',t:'Magnesium reduces PMS symptoms — dark chocolate, pumpkin seeds, leafy greens'},{c:'var(--pink)',t:'Sleep often disrupted in luteal phase. Try to be in bed by 10pm this week'}]}
+};
+
+function getCyc(){
+  var start=sG('lastPeriodDate');
+  if(!start)return{day:1,phase:'follicular',cl:33};
+  var ms=Date.now()-new Date(start).getTime();
+  var raw=Math.floor(ms/86400000)+1;
+  var cl=sG('cycleLength')||33;
+  var day=((raw-1)%cl)+1;
+  var phase='follicular';
+  if(day<=5)phase='menstrual';
+  else if(day<=13)phase='follicular';
+  else if(day<=16)phase='ovulatory';
+  else phase='luteal';
+  return{day:day,phase:phase,cl:cl};
+}
+
+function getDL(day,phase,cl){
+  var ends={menstrual:5,follicular:13,ovulatory:16,luteal:cl};
+  var l=ends[phase]-day+1;
+  return l<1?1:l;
+}
+
+function renderHome(){
+  var c=getCyc();var p=PH[c.phase];
+  var b=document.getElementById('pb-home');
+  b.className='pb '+c.phase;
+  document.getElementById('pb-ey').textContent=p.lbl;
+  document.getElementById('pb-h').textContent=p.h;
+  document.getElementById('pb-s').textContent=p.s;
+  document.getElementById('pb-d').innerHTML='Day '+c.day+'<br><span style="font-size:10px">'+getDL(c.day,c.phase,c.cl)+' days left</span>';
+  document.getElementById('hdl').textContent='Day '+c.day;
+  document.getElementById('hmt').textContent=p.mt;
+  document.getElementById('hmb').textContent=p.mb;
+  var chip=document.getElementById('hmc');chip.textContent=p.mc;chip.className='chip '+p.mcc;
+  document.getElementById('hi').innerHTML=p.ins.map(function(i){return '<div class="ii"><div class="ib" style="background:'+i.c+'"></div><div class="it">'+i.t+'</div></div>';}).join('');
+  document.getElementById('move-tr').textContent=p.lbl;
+  document.getElementById('yoga-tr').textContent=p.lbl;
+  var sug=document.getElementById('mv-sug');sug.className='sug '+c.phase;
+  document.getElementById('sug-ey').textContent='Suggested · '+p.lbl;
+  document.getElementById('sug-t').textContent=p.st;
+  document.getElementById('sug-s').textContent=p.ss;
+}
+
+function init(){
+  var today=new Date().toISOString().split('T')[0];
+  document.getElementById('ob-date').max=today;
+  var saved=sG('lastPeriodDate');
+  if(saved){
+    document.getElementById('ob').style.display='none';
+    renderHome();renderCal();renderYL();renderEL();
+    return;
+  }
+  document.getElementById('ob-btn').addEventListener('click',function(){
+    var d=document.getElementById('ob-date').value;
+    if(!d){
+      document.getElementById('ob-err').style.display='block';
+      document.getElementById('ob-date').style.borderColor='var(--pink-dark)';
+      return;
+    }
+    sS('lastPeriodDate',d);sS('cycleLength',33);
+    document.getElementById('ob').style.display='none';
+    renderHome();renderCal();
+  });
+}
+
+document.getElementById('pb-log').addEventListener('click',function(){document.getElementById('mo-period').classList.add('open');});
+document.getElementById('period-cancel').addEventListener('click',function(){document.getElementById('mo-period').classList.remove('open');});
+document.getElementById('period-confirm').addEventListener('click',function(){
+  var today=new Date().toISOString().split('T')[0];
+  sS('lastPeriodDate',today);sP('periodDates',today);
+  document.getElementById('mo-period').classList.remove('open');
+  renderHome();renderCal();
+  var btn=document.getElementById('pb-log');btn.textContent='🩸 Period logged ✓';btn.classList.add('on');
+  setTimeout(function(){btn.textContent='🩸 Log period start';btn.classList.remove('on');},3000);
+});
+document.getElementById('day-close').addEventListener('click',function(){document.getElementById('mo-day').classList.remove('open');});
+
+function renderCal(){
+  var now=new Date();
+  document.getElementById('log-mo').textContent=now.toLocaleDateString('en-NZ',{month:'long',year:'numeric'});
+  var yr=now.getFullYear(),mo=now.getMonth();
+  var fd=new Date(yr,mo,1).getDay();
+  var dim=new Date(yr,mo+1,0).getDate();
+  document.getElementById('cal-h').innerHTML=['S','M','T','W','T','F','S'].map(function(d){return '<div class="ch">'+d+'</div>';}).join('');
+  var sessions=sG('sessionLog')||[];
+  var yogas=sG('yogaLog')||[];
+  var supps=sG('suppLog')||[];
+  var periods=sG('periodDates')||[];
+  var todayS=now.toISOString().split('T')[0];
+  var cells='';
+  for(var i=0;i<fd;i++)cells+='<div></div>';
+  for(var d=1;d<=dim;d++){
+    var ds=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var isTod=ds===todayS;
+    var dots='';
+    if(sessions.some(function(s){return s.date===ds;}))dots+='<div class="dot" style="background:var(--green)"></div>';
+    if(yogas.some(function(y){return y.date===ds;}))dots+='<div class="dot" style="background:var(--purple)"></div>';
+    if(supps.indexOf(ds)>-1)dots+='<div class="dot" style="background:var(--amber)"></div>';
+    if(periods.indexOf(ds)>-1)dots+='<div class="dot" style="background:var(--pink)"></div>';
+    cells+='<div class="cd'+(isTod?' today':'')+'" data-ds="'+ds+'" data-d="'+d+'"><div class="cdn">'+d+'</div><div class="cdd">'+dots+'</div></div>';
+  }
+  document.getElementById('cal-g').innerHTML=cells;
+  document.getElementById('cal-g').querySelectorAll('.cd').forEach(function(el){
+    el.addEventListener('click',function(){showDay(el.dataset.ds,el.dataset.d);});
+  });
+}
+
+function showDay(ds,d){
+  var sessions=sG('sessionLog')||[];
+  var yogas=sG('yogaLog')||[];
+  var supps=sG('suppLog')||[];
+  var periods=sG('periodDates')||[];
+  var dt=new Date(ds+'T12:00:00');
+  document.getElementById('day-title').textContent=dt.toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'long'});
+  var html='';
+  var ds2=ds;
+  var daySess=sessions.filter(function(s){return s.date===ds2;});
+  var dayYoga=yogas.filter(function(y){return y.date===ds2;});
+  var hasS=supps.indexOf(ds2)>-1;
+  var hasP=periods.indexOf(ds2)>-1;
+  if(!daySess.length&&!dayYoga.length&&!hasS&&!hasP){html='<p style="font-size:13px;color:var(--text3);text-align:center;padding:16px 0">Nothing logged for this day.</p>';}
+  daySess.forEach(function(s){
+    var ty=s.sessionTypes&&s.sessionTypes.length?s.sessionTypes.join(', '):'';
+    var gr=s.grades&&s.grades.length?'Sent: '+s.grades.join(', '):'';
+    var pr=s.projects&&s.projects.length?'Projects: '+s.projects.join(', '):'';
+    html+='<div style="background:var(--green-bg);border-radius:10px;padding:12px;margin-bottom:8px">';
+    html+='<div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--green-dark);margin-bottom:6px">'+(s.type==='climbing'?'Bouldering':'Activity')+'</div>';
+    if(ty)html+='<div style="font-size:12px;color:var(--green-dark);margin-bottom:3px">'+ty+'</div>';
+    if(gr)html+='<div style="font-size:12px;color:var(--green-dark);margin-bottom:3px">'+gr+'</div>';
+    if(pr)html+='<div style="font-size:12px;color:var(--green-dark);margin-bottom:3px">'+pr+'</div>';
+    if(s.notes)html+='<div style="font-size:12px;color:var(--green-dark);font-style:italic;border-top:1px solid rgba(124,179,66,0.3);padding-top:6px;margin-top:6px">'+s.notes+'</div>';
+    html+='</div>';
+  });
+  dayYoga.forEach(function(y){
+    html+='<div style="background:var(--purple-bg);border-radius:10px;padding:12px;margin-bottom:8px"><div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--purple-dark);margin-bottom:6px">Yoga</div><div style="font-size:12px;color:var(--purple-dark)">'+y.name+'</div></div>';
+  });
+  if(hasS)html+='<div style="background:var(--amber-bg);border-radius:10px;padding:12px;margin-bottom:8px"><div style="font-size:12px;font-weight:600;color:var(--amber-dark)">✓ Supplements taken</div></div>';
+  if(hasP)html+='<div style="background:var(--pink-bg);border-radius:10px;padding:12px;margin-bottom:8px"><div style="font-size:12px;font-weight:600;color:var(--pink-dark)">🩸 Period start logged</div></div>';
+  document.getElementById('day-content').innerHTML=html;
+  document.getElementById('mo-day').classList.add('open');
+}
+
+function renderEL(){
+  var log=sG('energyLog')||[];
+  var el=document.getElementById('el-display');
+  if(!el)return;
+  if(!log.length){el.innerHTML='<span style="font-size:12px;color:var(--text3)">Check in each day on the home screen to see patterns here.</span>';return;}
+  var recent=log.slice(-7);
+  var cols={low:'var(--pink)',okay:'var(--amber)',good:'var(--green)',great:'var(--navy)'};
+  var lbls={low:'Low',okay:'Okay',good:'Good',great:'Great'};
+  el.innerHTML=recent.map(function(e){
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px">'+
+      '<div style="width:32px;height:32px;border-radius:8px;background:'+cols[e.val]+'"></div>'+
+      '<span style="font-size:9px;font-weight:600;color:var(--text3)">'+e.date.slice(5).replace('-','/')+'</span>'+
+      '<span style="font-size:9px;font-weight:700;color:'+cols[e.val]+'">'+lbls[e.val]+'</span>'+
+      '</div>';
+  }).join('');
+}
+
+var MEALS={
+  b:[
+    {n:'Eggs on sourdough with spinach',w:'Eggs provide choline for hormone metabolism and complete protein. Sourdough is fermented — easier on your gut.',c:['High protein','Gut-friendly','5 min']},
+    {n:'PB on sourdough with banana',w:'Peanut butter provides healthy fats and protein. Banana gives quick energy. Low prep, genuinely filling.',c:['Quick energy','Fibre','3 min']},
+    {n:'Greek yoghurt with blueberries and sunflower seeds',w:'Your go-to. Yoghurt provides probiotics. Sunflower seeds add vitamin E and selenium.',c:['Gut-friendly','High protein','2 min']},
+    {n:'Porridge with nut butter and pumpkin seeds',w:'Oats stabilise blood sugar — reduces energy crashes. Pumpkin seeds are your best dietary magnesium source.',c:['Blood sugar','Fibre','5 min']},
+    {n:'Overnight oats with chia seeds and nut butter',w:'Make the night before — zero morning effort. Chia seeds are high in omega-3s and fibre.',c:['No effort','High fibre','0 min']},
+    {n:'Scrambled tofu on sourdough with spinach',w:'Plant-based complete protein. Tofu phytoestrogens gently support oestrogen balance. Spinach adds iron.',c:['High protein','Hormone support','10 min']},
+    {n:'Yoghurt with hemp seeds, pumpkin seeds and blueberries',w:'Hemp seeds have one of the best plant amino acid profiles. Pumpkin seeds are your best magnesium source.',c:['High protein','Magnesium','3 min']}
+  ],
+  l:[
+    {n:"Tofu quinoa bowl (last night's leftovers)",w:'Make extra at dinner — your easiest lunch. Quinoa is a complete protein. Reheats well.',c:['High protein','Meal prep','2 min']},
+    {n:'Halloumi and roasted veg wrap — sandwich pressed',w:'Halloumi is high in protein and calcium. The press makes it feel like a proper meal.',c:['High protein','Filling','10 min']},
+    {n:'Black bean and cheese quesadilla — pressed',w:'Black beans are one of the best plant-based protein and fibre sources.',c:['High protein','High fibre','8 min']},
+    {n:'Tofu and pesto wrap — pressed flat',w:'Quick to assemble, press gives texture. Pesto adds healthy fats. Add spinach for iron.',c:['Quick','High protein','5 min']},
+    {n:'Lentil soup (batch cooked Sunday)',w:'Make once, eat four times. Lentils are your best plant-based iron source.',c:['Batch cook','Iron-rich','Reheat']},
+    {n:'Brown rice with edamame, cucumber and miso dressing',w:'No heating needed. Edamame is one of the highest protein plant foods. Miso is fermented.',c:['No heat','High protein','5 min']},
+    {n:'Chickpea and roasted veg tray — reheated',w:'Make the night before. Chickpeas provide protein, fibre and iron.',c:['Batch cook','High fibre','Reheat']},
+    {n:'Egg fried rice with frozen veg',w:'Simple, filling, high protein. Frozen veg means no prep.',c:['High protein','Quick','10 min']},
+    {n:'White bean and kale soup',w:'White beans are high in protein and fibre. Kale supports liver oestrogen processing.',c:['Batch cook','Hormone support','Reheat']}
+  ],
+  d:[
+    {n:'Tofu with quinoa and roasted veg',w:"Your go-to — high protein, high fibre, easy to adapt. Make extra for tomorrow's lunch.",c:['High protein','High fibre','20 min']},
+    {n:'Beans and veggie salad',w:'Simple, no-cook, endlessly adaptable. Use tinned beans for easy protein.',c:['No cook','High fibre','5 min']},
+    {n:'Edamame bowl with rice and sesame dressing',w:'Edamame is one of the best complete plant proteins. Sesame provides calcium and lignans.',c:['High protein','Hormone support','10 min']},
+    {n:'Vege sausages with roasted potato and greens',w:'Easy and satisfying. Look for sausages with at least 15g protein. Greens add iron.',c:['Easy','Comfort','20 min']},
+    {n:'Eggs on rice or quinoa',w:'Simple and filling. Eggs provide all essential amino acids. Good recovery meal.',c:['High protein','Quick','10 min']},
+    {n:'Black bean tacos with avocado and slaw',w:'Black beans plus corn tortilla makes a complete protein. Slaw is great for gut bacteria diversity.',c:['High fibre','Gut-friendly','15 min']},
+    {n:'Red lentil dhal with rice',w:'Lentils are your best plant-based iron source. High protein, high fibre, easy to make.',c:['Iron-rich','High fibre','25 min']},
+    {n:'Chickpea and spinach curry',w:'Chickpeas provide protein and iron. Turmeric supports gut health.',c:['Iron-rich','Gut-friendly','20 min']},
+    {n:'Halloumi with roasted veg and quinoa',w:'Halloumi is high in protein and calcium. Quinoa makes it a complete amino acid profile.',c:['High protein','Comfort','25 min']},
+    {n:'Tofu scramble with sweet potato',w:'Sweet potato provides complex carbs for sustained energy. High-protein satisfying dinner.',c:['High protein','Sustained energy','20 min']},
+    {n:'Gnocchi with pesto, peas and spinach',w:'Ten minutes. Peas add protein and fibre. Spinach adds iron.',c:['10 min','Comfort','Easy']},
+    {n:'Veggie burger with roasted potato wedges',w:'Choose a burger with at least 15-20g protein. Easy, no skill required.',c:['Easy','Comfort','20 min']},
+    {n:'Frittata with whatever veg you have',w:'One pan, 20 minutes, uses up any veg in the fridge. Eggs provide complete protein.',c:['No waste','High protein','20 min']}
+  ]
+};
+var mi={b:0,l:0,d:0};
+var cc=['cn','cg','ca'];
+function renderM(k){
+  var m=MEALS[k][mi[k]];
+  document.getElementById('mn-'+k).textContent=m.n;
+  document.getElementById('mw-'+k).textContent=m.w;
+  document.getElementById('mc-'+k).innerHTML=m.c.map(function(c,i){return '<span class="chip '+cc[i]+'">'+c+'</span>';}).join('');
+}
+function shufM(k){mi[k]=(mi[k]+1)%MEALS[k].length;renderM(k);}
+
+function logYoga(){
+  var inp=document.getElementById('yi');var val=inp.value.trim();if(!val)return;
+  var today=new Date().toISOString().split('T')[0];
+  sP('yogaLog',{name:val,date:today});inp.value='';renderYL();renderCal();
+}
+function renderYL(){
+  var log=sG('yogaLog')||[];
+  var card=document.getElementById('ylc');var list=document.getElementById('yll');
+  if(!log.length){card.style.display='none';return;}
+  card.style.display='block';
+  list.innerHTML=log.slice().reverse().slice(0,6).map(function(e){return '<div class="pr"><span class="pn">'+e.name+'</span><span class="pd">'+e.date+'</span></div>';}).join('');
+}
+
+function logClimb(){
+  var today=new Date().toISOString().split('T')[0];
+  var types=[].slice.call(document.querySelectorAll('#mt-c .pill.sel')).map(function(p){return p.textContent;});
+  var grades=[].slice.call(document.querySelectorAll('.gc.sent')).map(function(g){return g.textContent;});
+  var projects=[].slice.call(document.querySelectorAll('.gc.project')).map(function(g){return g.textContent;});
+  var notes=document.getElementById('cn').value;
+  sP('sessionLog',{date:today,type:'climbing',sessionTypes:types,grades:grades,projects:projects,notes:notes});
+  mDone('lcb','Session logged ✓');renderCal();
+}
+function logOther(){
+  var today=new Date().toISOString().split('T')[0];
+  var types=[].slice.call(document.querySelectorAll('#mt-o .pill.sel')).map(function(p){return p.textContent;});
+  var notes=document.getElementById('on').value;
+  sP('sessionLog',{date:today,type:'other',sessionTypes:types,notes:notes});
+  mDone('lob','Activity logged ✓');renderCal();
+}
+
+function tapS(id){
+  var btn=document.getElementById(id);var lbl=btn.querySelector('.sl');var ico=btn.querySelector('.si');
+  if(btn.classList.contains('taken')){
+    btn.classList.remove('taken');
+    if(id==='si'){btn.classList.add('remind');lbl.textContent='Iron — take today';ico.textContent='!';}
+    else{lbl.textContent='Creatine & Magnesium';ico.textContent='⬡';}
+  }else{
+    btn.classList.remove('remind');btn.classList.add('taken');
+    lbl.textContent=id==='si'?'Iron taken ✓':'Creatine & Mag ✓';ico.textContent='✓';
+    var today=new Date().toISOString().split('T')[0];
+    var sl=sG('suppLog')||[];if(sl.indexOf(today)===-1){sl.push(today);sS('suppLog',sl);}
+    renderCal();
+  }
+}
+
+function addWin(){
+  var inp=document.getElementById('win-i');var val=inp.value.trim();if(!val)return;
+  sP('wins',{text:val,date:new Date().toISOString().split('T')[0]});
+  var item=document.createElement('div');item.className='wi';
+  item.innerHTML='<div class="wd" style="background:var(--green-bg)">✦</div><div><div class="wti">'+val+'</div><div class="ws">Just now</div></div>';
+  document.getElementById('wl').insertBefore(item,document.getElementById('wl').firstChild);
+  inp.value='';
+}
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  if(id==='s-log'){renderCal();renderEL();}
+}
+
+function swTab(rowId,panelId,btn){
+  document.getElementById(rowId).querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active');
+  btn.closest('.screen').querySelectorAll('.tp').forEach(function(p){p.classList.remove('active');});
+  document.getElementById(panelId).classList.add('active');
+}
+
+function togP(btn){btn.classList.toggle('sel');}
+function cycG(btn){
+  if(btn.classList.contains('project')){btn.classList.remove('project');return;}
+  if(btn.classList.contains('sent')){btn.classList.add('project');btn.classList.remove('sent');return;}
+  btn.classList.add('sent');
+}
+function mDone(id,lbl){var b=document.getElementById(id);b.className='btn bd';b.textContent=lbl||'Done ✓';}
+function selE(btn,val){
+  document.querySelectorAll('.eb').forEach(function(b){b.classList.remove('sel');});
+  btn.classList.add('sel');
+  sP('energyLog',{date:new Date().toISOString().split('T')[0],val:val});
+}
+
+var now=new Date();var hr=now.getHours();
+document.getElementById('hd').textContent=(hr<12?'Morning':hr<17?'Afternoon':'Evening')+' · '+now.toLocaleDateString('en-NZ',{weekday:'short',day:'numeric',month:'short'});
+
+document.getElementById('lyb').addEventListener('click',logYoga);
+document.getElementById('lcb').addEventListener('click',logClimb);
+document.getElementById('lob').addEventListener('click',logOther);
+
+init();
+renderM('b');renderM('l');renderM('d');
+
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});}
+</script>
+</body>
+</html>
