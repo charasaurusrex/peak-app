@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Peak">
+<meta name="theme-color" content="#1B2D4F">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Peak</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --navy:#1B2D4F;--navy2:#2A4070;--navy-bg:#EEF1F7;
+  --pink:#E8829A;--pink-bg:#FFF0F3;--pink-dark:#B5445E;
+  --green:#7CB342;--green-bg:#F2F8E8;--green-dark:#4A7A10;
+  --amber:#E6A817;--amber-bg:#FFF8E6;--amber-dark:#9A6800;
+  --purple:#7B68C8;--purple-bg:#F2F0FC;--purple-dark:#4A3A9A;
+  --text:#1B2D4F;--text2:#5A6680;--text3:#9AA0B0;
+  --bg:#F8F9FB;--white:#FFFFFF;--border:#E4E8F0;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'Montserrat',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+.app{max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden}
+.screen.active{display:flex}
+.scroll-area{flex:1;overflow-y:auto;padding:14px 18px 20px;display:flex;flex-direction:column;gap:10px;padding-bottom:calc(72px + var(--safe-bottom))}
+.scroll-area::-webkit-scrollbar{display:none}
+
+/* TOPBAR */
+.topbar{padding:calc(16px + var(--safe-top)) 18px 12px;display:flex;justify-content:space-between;align-items:center;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0}
+.wordmark{font-size:17px;font-weight:700;color:var(--navy);letter-spacing:1.5px;text-transform:uppercase}
+.topbar-right{font-size:11px;font-weight:500;color:var(--text3);text-align:right;line-height:1.4}
+
+/* PHASE BANNER */
+.phase-banner{border-radius:16px;padding:18px 20px;position:relative;overflow:hidden;flex-shrink:0;margin:0 18px}
+.phase-banner.follicular{background:var(--green-bg);border:1px solid rgba(124,179,66,0.3)}
+.phase-banner.ovulatory{background:var(--amber-bg);border:1px solid rgba(230,168,23,0.3)}
+.phase-banner.luteal{background:var(--purple-bg);border:1px solid rgba(123,104,200,0.3)}
+.phase-banner.menstrual{background:var(--pink-bg);border:1px solid rgba(232,130,154,0.3)}
+.phase-eyebrow{font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:5px}
+.phase-heading{font-size:19px;font-weight:700;margin-bottom:3px;line-height:1.2}
+.phase-sub{font-size:12px;font-weight:400;line-height:1.5;opacity:0.85}
+.phase-day-display{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;opacity:0.5;text-align:right;line-height:1.4}
+.follicular .phase-eyebrow,.follicular .phase-heading,.follicular .phase-sub,.follicular .phase-day-display{color:var(--green-dark)}
+.ovulatory .phase-eyebrow,.ovulatory .phase-heading,.ovulatory .phase-sub,.ovulatory .phase-day-display{color:var(--amber-dark)}
+.luteal .phase-eyebrow,.luteal .phase-heading,.luteal .phase-sub,.luteal .phase-day-display{color:var(--purple-dark)}
+.menstrual .phase-eyebrow,.menstrual .phase-heading,.menstrual .phase-sub,.menstrual .phase-day-display{color:var(--pink-dark)}
+
+/* CARDS */
+.card{background:var(--white);border-radius:14px;padding:16px;border:1px solid var(--border)}
+.card-eyebrow{font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.card-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.3}
+.card-body{font-size:12px;font-weight:400;color:var(--text2);line-height:1.6}
+.card-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.chip{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.chip-navy{background:var(--navy);color:#fff}
+.chip-green{background:var(--green-bg);color:var(--green-dark);border:1px solid rgba(124,179,66,0.4)}
+.chip-pink{background:var(--pink-bg);color:var(--pink-dark);border:1px solid rgba(232,130,154,0.4)}
+.chip-amber{background:var(--amber-bg);color:var(--amber-dark);border:1px solid rgba(230,168,23,0.4)}
+.chip-purple{background:var(--purple-bg);color:var(--purple-dark);border:1px solid rgba(123,104,200,0.4)}
+
+/* BUTTONS */
+.btn{display:block;width:100%;padding:12px;border-radius:10px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;margin-top:12px;letter-spacing:0.02em;transition:opacity 0.15s}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-navy:active{opacity:0.85}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text2)}
+.btn-outline:active{background:var(--bg)}
+.btn-green{background:var(--green-bg);color:var(--green-dark);border:1.5px solid rgba(124,179,66,0.5)}
+.btn-done{background:var(--green-bg);color:var(--green-dark);border:1.5px solid var(--green)}
+.btn-pink{background:var(--pink-bg);color:var(--pink-dark);border:1.5px solid rgba(232,130,154,0.5)}
+
+/* NAV */
+.nav{display:flex;background:var(--white);border-top:1px solid var(--border);padding:8px 0;padding-bottom:calc(8px + var(--safe-bottom));flex-shrink:0}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:transparent;cursor:pointer;padding:4px 0;font-family:'Montserrat',sans-serif}
+.nav-icon{font-size:19px;color:var(--text3);line-height:1}
+.nav-lbl{font-size:9px;font-weight:600;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase}
+.nav-pip{width:4px;height:4px;border-radius:2px;background:transparent;margin:1px auto 0}
+.nav-btn.active .nav-icon,.nav-btn.active .nav-lbl{color:var(--navy)}
+.nav-btn.active .nav-pip{background:var(--navy)}
+
+/* INSIGHT */
+.insight-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.insight-item:last-child{border-bottom:none;padding-bottom:0}
+.i-bar{width:3px;border-radius:2px;flex-shrink:0;align-self:stretch;min-height:16px}
+.i-text{font-size:12px;color:var(--text2);line-height:1.6}
+
+/* SUPPLEMENTS */
+.supp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.supp-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:12px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;font-family:'Montserrat',sans-serif;transition:all 0.15s}
+.supp-icon{font-size:22px;line-height:1}
+.supp-label{font-size:10px;font-weight:600;color:var(--text2);text-align:center;line-height:1.3}
+.supp-btn.taken{background:var(--green-bg);border-color:rgba(124,179,66,0.6)}
+.supp-btn.taken .supp-label{color:var(--green-dark)}
+.supp-btn.remind{background:var(--pink-bg);border-color:rgba(232,130,154,0.5)}
+.supp-btn.remind .supp-label{color:var(--pink-dark)}
+
+/* ENERGY */
+.e-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-top:10px}
+.e-btn{padding:10px 4px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;text-align:center}
+.e-btn.sel{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* TABS */
+.tab-row{display:flex;gap:6px}
+.tab{flex:1;padding:9px 4px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;text-align:center;letter-spacing:0.02em}
+.tab.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.tab-panel{display:none;flex-direction:column;gap:10px}
+.tab-panel.active{display:flex}
+
+/* PILLS */
+.pill-wrap{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.pill{padding:8px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer}
+.pill.sel{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* GRADE CHIPS */
+.grade-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.g-chip{width:48px;height:48px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.g-chip.sent{background:var(--green-bg);border-color:var(--green);color:var(--green-dark)}
+.g-chip.project{background:var(--purple-bg);border-color:var(--purple);color:var(--purple-dark)}
+
+/* TEXTAREA / INPUT */
+.textarea{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-family:'Montserrat',sans-serif;font-size:12px;color:var(--text);background:var(--white);resize:none;min-height:80px;line-height:1.6;margin-top:10px}
+.textarea:focus,.text-input:focus{outline:none;border-color:var(--navy)}
+.text-input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-family:'Montserrat',sans-serif;font-size:12px;color:var(--text);background:var(--white);margin-top:8px}
+
+/* POSE LIST */
+.pose-list{display:flex;flex-direction:column}
+.pose-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.pose-row:last-child{border-bottom:none;padding-bottom:0}
+.pose-name{font-size:12px;font-weight:500;color:var(--text)}
+.pose-dur{font-size:11px;font-weight:500;color:var(--text3)}
+
+/* SUGGESTED */
+.suggested{border-radius:14px;padding:16px}
+.suggested.follicular{background:var(--green-bg);border:1px solid rgba(124,179,66,0.3)}
+.suggested.ovulatory{background:var(--amber-bg);border:1px solid rgba(230,168,23,0.3)}
+.suggested.luteal{background:var(--purple-bg);border:1px solid rgba(123,104,200,0.3)}
+.suggested.menstrual{background:var(--pink-bg);border:1px solid rgba(232,130,154,0.3)}
+.suggested-eyebrow{font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:6px}
+.suggested-title{font-size:14px;font-weight:700;margin-bottom:6px;line-height:1.3}
+.suggested-body{font-size:12px;line-height:1.6;opacity:0.85}
+.follicular .suggested-eyebrow,.follicular .suggested-title,.follicular .suggested-body{color:var(--green-dark)}
+.ovulatory .suggested-eyebrow,.ovulatory .suggested-title,.ovulatory .suggested-body{color:var(--amber-dark)}
+.luteal .suggested-eyebrow,.luteal .suggested-title,.luteal .suggested-body{color:var(--purple-dark)}
+.menstrual .suggested-eyebrow,.menstrual .suggested-title,.menstrual .suggested-body{color:var(--pink-dark)}
+
+/* WRIST */
+.wrist-banner{background:var(--pink-bg);border:1px solid rgba(232,130,154,0.4);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.wrist-text{font-size:12px;font-weight:500;color:var(--pink-dark);line-height:1.5}
+
+/* MEAL */
+.meal-name{font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.3}
+.meal-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.meal-why{font-size:12px;color:var(--text2);line-height:1.6;border-left:3px solid var(--green);padding-left:12px;margin-bottom:14px}
+
+/* WIN */
+.win-item{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;gap:12px;align-items:center}
+.win-dot{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.win-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.3}
+.win-sub{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* CALENDAR */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+.cal-head{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);text-align:center;padding:4px 0}
+.cal-day{border-radius:8px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;position:relative;background:var(--bg);border:1px solid transparent}
+.cal-day.today{border-color:var(--navy)}
+.cal-day .cal-num{font-size:11px;font-weight:600;color:var(--text2)}
+.cal-day.today .cal-num{color:var(--navy)}
+.cal-day .cal-dots{display:flex;gap:2px}
+.cal-dot{width:4px;height:4px;border-radius:2px}
+.info-banner{border-radius:12px;padding:13px 15px;font-size:12px;line-height:1.6;font-weight:500}
+.info-green{background:var(--green-bg);color:var(--green-dark);border:1px solid rgba(124,179,66,0.3)}
+.info-purple{background:var(--purple-bg);color:var(--purple-dark);border:1px solid rgba(123,104,200,0.3)}
+.info-pink{background:var(--pink-bg);color:var(--pink-dark);border:1px solid rgba(232,130,154,0.3)}
+
+/* PERIOD LOG BTN */
+.period-strip{display:flex;gap:8px;margin-top:10px}
+.period-btn{flex:1;padding:10px;border-radius:10px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;cursor:pointer;text-align:center;border:1.5px solid var(--border);background:var(--white);color:var(--text2)}
+.period-btn.active-period{background:var(--pink-bg);border-color:var(--pink);color:var(--pink-dark)}
+
+/* ONBOARDING */
+.onboard{position:fixed;inset:0;background:var(--white);z-index:200;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 28px;gap:20px}
+.onboard h1{font-size:28px;font-weight:700;color:var(--navy);text-align:center;line-height:1.2}
+.onboard p{font-size:14px;color:var(--text2);text-align:center;line-height:1.7}
+.onboard label{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);align-self:flex-start}
+.onboard input[type=date]{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:13px;font-family:'Montserrat',sans-serif;font-size:14px;color:var(--text);background:var(--white)}
+.onboard input[type=date]:focus{outline:none;border-color:var(--navy)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(27,45,79,0.3);z-index:150;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:20px 20px 0 0;padding:24px 20px;padding-bottom:calc(24px + var(--safe-bottom));width:100%;max-width:430px}
+.modal h3{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.modal p{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px}
+</style>
+</head>
+<body>
+
+<!-- ONBOARDING -->
+<div class="onboard" id="onboard">
+  <div style="font-size:40px">🌿</div>
+  <h1>Welcome to Peak</h1>
+  <p>Your personal movement, cycle and lifestyle app. To get started, enter the first day of your last period so Peak can track your cycle automatically.</p>
+  <label>First day of last period</label>
+  <input type="date" id="ob-date" max="">
+  <button class="btn btn-navy" style="width:100%;margin-top:0" onclick="saveOnboard()">Get started</button>
+</div>
+
+<!-- PERIOD MODAL -->
+<div class="modal-overlay" id="period-modal">
+  <div class="modal">
+    <h3>Log period</h3>
+    <p>Tap to mark today as the start of your period. This updates your cycle automatically.</p>
+    <button class="btn btn-pink" onclick="logPeriodStart()">My period started today</button>
+    <button class="btn btn-outline" onclick="closePeriodModal()" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- ===== HOME ===== -->
+<div class="screen active" id="s-home">
+  <div class="topbar">
+    <div class="wordmark">Peak</div>
+    <div class="topbar-right" id="hdate-top">Mon 18 May</div>
+  </div>
+  <div style="padding:14px 0 0;flex-shrink:0">
+    <div id="phase-banner-home" class="phase-banner follicular" style="margin:0 18px">
+      <div class="phase-eyebrow" id="pb-eyebrow">Follicular phase</div>
+      <div class="phase-heading" id="pb-heading">Build & energise</div>
+      <div class="phase-sub" id="pb-sub">Oestrogen rising. Your best week for hard problems.</div>
+      <div class="phase-day-display" id="pb-day">Day 14<br><span style="font-size:10px;opacity:0.7" id="pb-days-left"></span></div>
+    </div>
+  </div>
+  <div class="scroll-area">
+    <div class="card">
+      <div class="card-eyebrow">Supplements</div>
+      <div class="supp-grid">
+        <button class="supp-btn" id="sc" onclick="tapSupp('sc')">
+          <span class="supp-icon">⬡</span>
+          <span class="supp-label">Creatine &amp; Magnesium</span>
+        </button>
+        <button class="supp-btn remind" id="si" onclick="tapSupp('si')">
+          <span class="supp-icon">!</span>
+          <span class="supp-label">Iron — take today</span>
+        </button>
+      </div>
+      <div class="period-strip">
+        <button class="period-btn" id="period-log-btn" onclick="openPeriodModal()">🩸 Log period start</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-row">
+        <div style="flex:1">
+          <div class="card-eyebrow">Today's movement</div>
+          <div class="card-title" id="home-move-title">Bouldering session</div>
+          <div class="card-body" id="home-move-body">Follicular phase — coordination at its peak. Good session for technical problems.</div>
+        </div>
+        <span class="chip chip-navy" id="home-move-chip">Climbing</span>
+      </div>
+      <button class="btn btn-navy" onclick="goTo('s-move')">View session →</button>
+    </div>
+    <div class="card">
+      <div class="card-row">
+        <div style="flex:1">
+          <div class="card-eyebrow">Tonight's meal</div>
+          <div class="card-title" id="h-meal-name">Tofu with quinoa and roasted veg</div>
+          <div class="card-body">High protein, high fibre, endlessly adaptable.</div>
+        </div>
+        <span class="chip chip-green">Gut-friendly</span>
+      </div>
+      <button class="btn btn-outline" onclick="goTo('s-food')">Meal bank →</button>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Body insight · <span id="home-day-label">Day 14</span></div>
+      <div id="home-insights"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="font-size:14px">How's your energy today?</div>
+      <div class="e-grid">
+        <button class="e-btn" onclick="selE(this,'low')">Low</button>
+        <button class="e-btn" onclick="selE(this,'okay')">Okay</button>
+        <button class="e-btn" onclick="selE(this,'good')">Good</button>
+        <button class="e-btn" onclick="selE(this,'great')">Great</button>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="goTo('s-home')"><div class="nav-icon">⌂</div><div class="nav-lbl">Home</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-move')"><div class="nav-icon">◬</div><div class="nav-lbl">Move</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-yoga')"><div class="nav-icon">❋</div><div class="nav-lbl">Yoga</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-food')"><div class="nav-icon">◉</div><div class="nav-lbl">Eat</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-log')"><div class="nav-icon">◫</div><div class="nav-lbl">Log</div><div class="nav-pip"></div></button>
+  </div>
+</div>
+
+<!-- ===== MOVE ===== -->
+<div class="screen" id="s-move">
+  <div class="topbar"><div class="wordmark">Movement</div><div class="topbar-right" id="move-phase-label">Follicular</div></div>
+  <div class="scroll-area">
+    <div class="wrist-banner"><span style="font-size:16px">⚠</span><div class="wrist-text">Wrist cyst active — open hand grip only, no full crimps. Surgeon in June.</div></div>
+    <div class="tab-row">
+      <button class="tab active" onclick="switchTab('mt-climb',this,'move-tabs')">Climbing</button>
+      <button class="tab" onclick="switchTab('mt-other',this,'move-tabs')">Gym / Walk</button>
+      <button class="tab" onclick="switchTab('mt-antag',this,'move-tabs')">Antagonist</button>
+    </div>
+
+    <div class="tab-panel active" id="mt-climb">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:8px">Session type</div>
+        <div class="pill-wrap">
+          <button class="pill" onclick="togPill(this)">Social climb</button>
+          <button class="pill" onclick="togPill(this)">Projecting</button>
+          <button class="pill" onclick="togPill(this)">Overhang heavy</button>
+          <button class="pill" onclick="togPill(this)">Slab focus</button>
+          <button class="pill" onclick="togPill(this)">Footwork drills</button>
+          <button class="pill" onclick="togPill(this)">Low energy</button>
+          <button class="pill" onclick="togPill(this)">High energy</button>
+          <button class="pill" onclick="togPill(this)">Technique</button>
+          <button class="pill" onclick="togPill(this)">Comp style</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:4px">Grade log</div>
+        <div class="card-body">Once = sent &nbsp;·&nbsp; Twice = project</div>
+        <div class="grade-wrap">
+          <button class="g-chip" onclick="cycleG(this)">V2</button>
+          <button class="g-chip" onclick="cycleG(this)">V3</button>
+          <button class="g-chip" onclick="cycleG(this)">V3</button>
+          <button class="g-chip" onclick="cycleG(this)">V4</button>
+          <button class="g-chip" onclick="cycleG(this)">V4</button>
+          <button class="g-chip" onclick="cycleG(this)">V5</button>
+          <button class="g-chip" onclick="cycleG(this)">V5</button>
+          <button class="g-chip" onclick="cycleG(this)">V6</button>
+          <button class="g-chip" onclick="cycleG(this)">V6</button>
+          <button class="g-chip" onclick="cycleG(this)">V7</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Session reflection</div>
+        <textarea class="textarea" id="climb-notes" placeholder="How did it feel? Breakthroughs, frustrations, things to remember…"></textarea>
+        <button class="btn btn-navy" id="log-climb-btn" onclick="logClimbSession()">Log session</button>
+      </div>
+      <div class="suggested follicular" id="move-suggested">
+        <div class="suggested-eyebrow">Suggested · Follicular</div>
+        <div class="suggested-title" id="sug-title">Technical + one project attempt</div>
+        <div class="suggested-body" id="sug-body">Coordination is at its peak. Warm up on V3s, 20 min footwork on slab, then 3–4 focused project attempts. Finish with open-hand pulling on jugs. Skip full crimps on right hand.</div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="mt-other">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:8px">Activity</div>
+        <div class="pill-wrap">
+          <button class="pill" onclick="togPill(this)">Walking</button>
+          <button class="pill" onclick="togPill(this)">Gym session</button>
+          <button class="pill" onclick="togPill(this)">Run</button>
+          <button class="pill" onclick="togPill(this)">Cycle</button>
+          <button class="pill" onclick="togPill(this)">Swimming</button>
+          <button class="pill" onclick="togPill(this)">Other</button>
+        </div>
+        <textarea class="textarea" id="other-notes" placeholder="Describe what you did…"></textarea>
+        <button class="btn btn-navy" id="log-other-btn" onclick="logOtherSession()">Log activity</button>
+      </div>
+      <div class="card">
+        <div class="card-eyebrow">This week</div>
+        <div class="pose-list">
+          <div class="pose-row"><span class="pose-name">Mon — Bouldering</span><span class="pose-dur" style="color:var(--green-dark);font-weight:700">Today</span></div>
+          <div class="pose-row"><span class="pose-name">Tue — Yoga</span><span class="pose-dur">Tomorrow</span></div>
+          <div class="pose-row"><span class="pose-name">Thu — Bouldering</span><span class="pose-dur">Rest Wed</span></div>
+          <div class="pose-row"><span class="pose-name">Sat — Walk + yoga</span><span class="pose-dur">Active rest</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="mt-antag">
+      <div class="card">
+        <div class="card-eyebrow">Antagonist training · 15 min post-climb</div>
+        <div class="card-body" style="margin-bottom:14px">Keeps your wrist, elbow and shoulder healthy long-term. Non-negotiable.</div>
+        <div class="pose-list">
+          <div class="pose-row"><span class="pose-name">Wrist extension curls</span><span class="pose-dur">3 × 15</span></div>
+          <div class="pose-row"><span class="pose-name">Theraband shoulder ext. rotation</span><span class="pose-dur">3 × 15 each</span></div>
+          <div class="pose-row"><span class="pose-name">Reverse wrist curls</span><span class="pose-dur">3 × 12</span></div>
+          <div class="pose-row"><span class="pose-name">Scapular push-ups</span><span class="pose-dur">2 × 10</span></div>
+          <div class="pose-row"><span class="pose-name">Finger extension (rubber band)</span><span class="pose-dur">3 × 20</span></div>
+          <div class="pose-row"><span class="pose-name">Pronation / supination</span><span class="pose-dur">2 × 10 each</span></div>
+        </div>
+        <button class="btn btn-navy" id="log-antag-btn" onclick="markDone('log-antag-btn','Done ✓')">Mark done</button>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn" onclick="goTo('s-home')"><div class="nav-icon">⌂</div><div class="nav-lbl">Home</div><div class="nav-pip"></div></button>
+    <button class="nav-btn active" onclick="goTo('s-move')"><div class="nav-icon">◬</div><div class="nav-lbl">Move</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-yoga')"><div class="nav-icon">❋</div><div class="nav-lbl">Yoga</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-food')"><div class="nav-icon">◉</div><div class="nav-lbl">Eat</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-log')"><div class="nav-icon">◫</div><div class="nav-lbl">Log</div><div class="nav-pip"></div></button>
+  </div>
+</div>
+
+<!-- ===== YOGA ===== -->
+<div class="screen" id="s-yoga">
+  <div class="topbar"><div class="wordmark">Yoga</div><div class="topbar-right" id="yoga-phase-label">Follicular · Strength</div></div>
+  <div class="scroll-area">
+    <div class="card">
+      <div class="card-eyebrow">Log a class</div>
+      <div class="card-body" style="margin-bottom:4px">Name it, paste a YouTube link, or describe what you did.</div>
+      <input class="text-input" id="yoga-input" type="text" placeholder="e.g. Adriene — morning flow 30 min, or a YouTube link…">
+      <button class="btn btn-navy" onclick="logYoga()">Add to log</button>
+    </div>
+    <div class="card" id="yoga-log-card" style="display:none">
+      <div class="card-eyebrow">Recent classes</div>
+      <div id="yoga-log-list"></div>
+    </div>
+    <div class="suggested follicular" id="yoga-suggested-follicular">
+      <div class="suggested-eyebrow">Follicular — Strength flow</div>
+      <div class="suggested-title">Builds hip mobility and core for climbing</div>
+      <div class="pose-list" style="margin-top:10px">
+        <div class="pose-row" style="border-color:rgba(124,179,66,0.25)"><span class="pose-name" style="color:var(--green-dark)">Child's pose + breath</span><span class="pose-dur" style="color:var(--green-dark);opacity:0.7">2 min</span></div>
+        <div class="pose-row" style="border-color:rgba(124,179,66,0.25)"><span class="pose-name" style="color:var(--green-dark)">Cat-cow</span><span class="pose-dur" style="color:var(--green-dark);opacity:0.7">1 min</span></div>
+        <div class="pose-row" style="border-color:rgba(124,179,66,0.25)"><span class="pose-name" style="color:var(--green-dark)">Downward dog → plank flow</span><span class="pose-dur" style="color:var(--green-dark);opacity:0.7">3 min</span></div>
+        <div class="pose-row" style="border-color:rgba(124,179,66,0.25)"><span class="pose-name" style="color:var(--green-dark)">Warrior I + II</span><span class="pose-dur" style="color:var(--green-dark);opacity:0.7">3 min each</span></div>
+        <div class="pose-row" style="border-color:rgba(124,179,66,0.25)"><span class="pose-name" style="color:var(--green-dark)">Chair pose hold</span><span class="pose-dur" style="color:var(--green-dark);opacity:0.7">5 breaths × 3</span></div>
+        <div class="pose-row" style="border-color:rgba(124,179,66,0.25)"><span class="pose-name" style="color:var(--green-dark)">Low lunge + hip flexor</span><span class="pose-dur" style="color:var(--green-dark);opacity:0.7">2 min each</span></div>
+        <div class="pose-row" style="border-color:rgba(124,179,66,0.25)"><span class="pose-name" style="color:var(--green-dark)">Pigeon pose</span><span class="pose-dur" style="color:var(--green-dark);opacity:0.7">90 sec each</span></div>
+        <div class="pose-row" style="border:none;padding-bottom:0"><span class="pose-name" style="color:var(--green-dark)">Savasana</span><span class="pose-dur" style="color:var(--green-dark);opacity:0.7">3 min</span></div>
+      </div>
+    </div>
+    <div class="suggested luteal">
+      <div class="suggested-eyebrow">Luteal — Restore & ground</div>
+      <div class="suggested-title">Reduces cortisol, eases jaw and shoulder tension</div>
+      <div class="pose-list" style="margin-top:10px">
+        <div class="pose-row" style="border-color:rgba(123,104,200,0.2)"><span class="pose-name" style="color:var(--purple-dark)">Legs up the wall</span><span class="pose-dur" style="color:var(--purple-dark);opacity:0.7">5 min</span></div>
+        <div class="pose-row" style="border-color:rgba(123,104,200,0.2)"><span class="pose-name" style="color:var(--purple-dark)">Supported bridge</span><span class="pose-dur" style="color:var(--purple-dark);opacity:0.7">3 min</span></div>
+        <div class="pose-row" style="border-color:rgba(123,104,200,0.2)"><span class="pose-name" style="color:var(--purple-dark)">Butterfly pose</span><span class="pose-dur" style="color:var(--purple-dark);opacity:0.7">3 min</span></div>
+        <div class="pose-row" style="border-color:rgba(123,104,200,0.2)"><span class="pose-name" style="color:var(--purple-dark)">Seated forward fold</span><span class="pose-dur" style="color:var(--purple-dark);opacity:0.7">2 min</span></div>
+        <div class="pose-row" style="border-color:rgba(123,104,200,0.2)"><span class="pose-name" style="color:var(--purple-dark)">Jaw + neck release</span><span class="pose-dur" style="color:var(--purple-dark);opacity:0.7">2 min</span></div>
+        <div class="pose-row" style="border:none;padding-bottom:0"><span class="pose-name" style="color:var(--purple-dark)">Yoga nidra</span><span class="pose-dur" style="color:var(--purple-dark);opacity:0.7">10 min</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn" onclick="goTo('s-home')"><div class="nav-icon">⌂</div><div class="nav-lbl">Home</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-move')"><div class="nav-icon">◬</div><div class="nav-lbl">Move</div><div class="nav-pip"></div></button>
+    <button class="nav-btn active" onclick="goTo('s-yoga')"><div class="nav-icon">❋</div><div class="nav-lbl">Yoga</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-food')"><div class="nav-icon">◉</div><div class="nav-lbl">Eat</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-log')"><div class="nav-icon">◫</div><div class="nav-lbl">Log</div><div class="nav-pip"></div></button>
+  </div>
+</div>
+
+<!-- ===== FOOD ===== -->
+<div class="screen" id="s-food">
+  <div class="topbar"><div class="wordmark">Eat</div><div class="topbar-right">Plant-based · Gut-friendly</div></div>
+  <div class="scroll-area">
+    <div class="info-banner info-green">All meals here are plant-based, low-fructose, high protein and fibre, and genuinely easy. Shuffle to find something for today.</div>
+    <div class="tab-row" id="food-tabs">
+      <button class="tab active" onclick="switchTab('ft-breakfast',this,'food-tabs')">Breakfast</button>
+      <button class="tab" onclick="switchTab('ft-lunch',this,'food-tabs')">Lunch</button>
+      <button class="tab" onclick="switchTab('ft-dinner',this,'food-tabs')">Dinner</button>
+    </div>
+    <div class="tab-panel active" id="ft-breakfast">
+      <div class="card">
+        <div class="card-eyebrow" id="meal-label-b">Breakfast idea</div>
+        <div class="meal-name" id="meal-name-b">Eggs on sourdough with spinach</div>
+        <div class="meal-chips" id="meal-chips-b"><span class="chip chip-navy">High protein</span><span class="chip chip-green">Gut-friendly</span><span class="chip chip-amber">5 min</span></div>
+        <div class="meal-why" id="meal-why-b">Eggs provide choline for hormone metabolism and complete protein for muscle repair. Sourdough is fermented — easier on your gut.</div>
+        <button class="btn btn-outline" onclick="shuffleMeal('breakfast')">↻ Different idea</button>
+      </div>
+    </div>
+    <div class="tab-panel" id="ft-lunch">
+      <div class="card">
+        <div class="card-eyebrow">Lunch idea</div>
+        <div class="meal-name" id="meal-name-l">Tofu quinoa bowl (last night's leftovers)</div>
+        <div class="meal-chips" id="meal-chips-l"><span class="chip chip-navy">High protein</span><span class="chip chip-green">Meal prep</span><span class="chip chip-amber">2 min</span></div>
+        <div class="meal-why" id="meal-why-l">Make extra at dinner — this is your easiest lunch. Quinoa is a complete protein. Reheats well, genuinely filling.</div>
+        <button class="btn btn-outline" onclick="shuffleMeal('lunch')">↻ Different idea</button>
+      </div>
+    </div>
+    <div class="tab-panel" id="ft-dinner">
+      <div class="card">
+        <div class="card-eyebrow">Dinner idea</div>
+        <div class="meal-name" id="meal-name-d">Tofu with quinoa and roasted veg</div>
+        <div class="meal-chips" id="meal-chips-d"><span class="chip chip-navy">High protein</span><span class="chip chip-green">High fibre</span><span class="chip chip-amber">20 min</span></div>
+        <div class="meal-why" id="meal-why-d">Your go-to — high protein, high fibre, easy to adapt. Make extra for tomorrow's lunch.</div>
+        <button class="btn btn-outline" onclick="shuffleMeal('dinner')">↻ Different idea</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Shopping anchors</div>
+      <div class="card-body" style="margin-bottom:10px">Keep these stocked and you can always make something decent without deciding.</div>
+      <div class="pill-wrap" style="gap:6px">
+        <span class="pill" style="cursor:default">Eggs</span><span class="pill" style="cursor:default">Tofu</span><span class="pill" style="cursor:default">Chickpeas</span><span class="pill" style="cursor:default">Lentils</span><span class="pill" style="cursor:default">Quinoa</span><span class="pill" style="cursor:default">Oats</span><span class="pill" style="cursor:default">Edamame</span><span class="pill" style="cursor:default">Frozen veg</span><span class="pill" style="cursor:default">Greek yoghurt</span><span class="pill" style="cursor:default">Peanut butter</span><span class="pill" style="cursor:default">Miso paste</span><span class="pill" style="cursor:default">Sourdough</span><span class="pill" style="cursor:default">Pumpkin seeds</span><span class="pill" style="cursor:default">Dark chocolate</span><span class="pill" style="cursor:default">Halloumi</span><span class="pill" style="cursor:default">Black beans</span><span class="pill" style="cursor:default">Blueberries</span>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn" onclick="goTo('s-home')"><div class="nav-icon">⌂</div><div class="nav-lbl">Home</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-move')"><div class="nav-icon">◬</div><div class="nav-lbl">Move</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-yoga')"><div class="nav-icon">❋</div><div class="nav-lbl">Yoga</div><div class="nav-pip"></div></button>
+    <button class="nav-btn active" onclick="goTo('s-food')"><div class="nav-icon">◉</div><div class="nav-lbl">Eat</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-log')"><div class="nav-icon">◫</div><div class="nav-lbl">Log</div><div class="nav-pip"></div></button>
+  </div>
+</div>
+
+<!-- ===== LOG ===== -->
+<div class="screen" id="s-log">
+  <div class="topbar"><div class="wordmark">Log</div><div class="topbar-right" id="log-month"></div></div>
+  <div class="scroll-area">
+    <div class="card">
+      <div class="card-eyebrow">This month</div>
+      <div class="cal-grid" id="cal-heads"></div>
+      <div class="cal-grid" id="cal-grid" style="margin-top:4px"></div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Legend</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px">
+        <div style="display:flex;align-items:center;gap:6px"><div class="cal-dot" style="width:8px;height:8px;background:var(--green);border-radius:2px"></div><span style="font-size:11px;color:var(--text2)">Session</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><div class="cal-dot" style="width:8px;height:8px;background:var(--purple);border-radius:2px"></div><span style="font-size:11px;color:var(--text2)">Yoga</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><div class="cal-dot" style="width:8px;height:8px;background:var(--amber);border-radius:2px"></div><span style="font-size:11px;color:var(--text2)">Supplements</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><div class="cal-dot" style="width:8px;height:8px;background:var(--pink);border-radius:2px"></div><span style="font-size:11px;color:var(--text2)">Period</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Wins</div>
+      <div class="info-banner info-purple" style="margin-bottom:12px">Wins are about what your body can do — not how it looks.</div>
+      <div id="wins-list" style="display:flex;flex-direction:column;gap:8px">
+        <div class="win-item"><div class="win-dot" style="background:var(--green-bg)">◬</div><div><div class="win-title">Logged 2 bouldering sessions this week</div><div class="win-sub">Consistency · building the base</div></div></div>
+        <div class="win-item"><div class="win-dot" style="background:var(--purple-bg)">❋</div><div><div class="win-title">Added a yoga class to your log</div><div class="win-sub">Recovery · body connection</div></div></div>
+        <div class="win-item"><div class="win-dot" style="background:var(--amber-bg)">⬡</div><div><div class="win-title">Took supplements 5 days in a row</div><div class="win-sub">Consistency · recovery support</div></div></div>
+      </div>
+      <textarea class="textarea" id="win-input" placeholder="Something your body did today that felt good…"></textarea>
+      <button class="btn btn-navy" onclick="addWin()">Add win</button>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn" onclick="goTo('s-home')"><div class="nav-icon">⌂</div><div class="nav-lbl">Home</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-move')"><div class="nav-icon">◬</div><div class="nav-lbl">Move</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-yoga')"><div class="nav-icon">❋</div><div class="nav-lbl">Yoga</div><div class="nav-pip"></div></button>
+    <button class="nav-btn" onclick="goTo('s-food')"><div class="nav-icon">◉</div><div class="nav-lbl">Eat</div><div class="nav-pip"></div></button>
+    <button class="nav-btn active" onclick="goTo('s-log')"><div class="nav-icon">◫</div><div class="nav-lbl">Log</div><div class="nav-pip"></div></button>
+  </div>
+</div>
+
+</div><!-- end .app -->
+
+<script>
+// ── STORAGE HELPERS ──
+const S={
+  get:(k)=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},
+  set:(k,v)=>{localStorage.setItem(k,JSON.stringify(v))},
+  push:(k,v)=>{const a=S.get(k)||[];a.push(v);S.set(k,a)}
+};
+
+// ── PHASE DATA ──
+const PHASES={
+  menstrual:{cls:'menstrual',label:'Menstrual phase',heading:'Rest & restore',sub:'Your body is working hard. Gentle movement and warmth today.',movTitle:'Gentle yoga or rest',movBody:'This is not a climbing day. Your body is doing significant work. Prioritise rest and a short restorative yoga session if you feel up to it.',movChip:'Rest',movChipCls:'chip-pink',sugTitle:'Restorative movement only',sugBody:'Walking, gentle yoga, or full rest. Anything that feels good. No pressure to perform.',insights:[{c:'var(--pink)',t:'Progesterone and oestrogen at their lowest — reduced energy is completely normal and expected'},{c:'var(--purple)',t:'Iron levels drop during menstruation — this is the most important time to take your iron supplement'},{c:'var(--navy)',t:'Warmth helps with cramps: warm meals, a hot water bottle, restorative yoga with the luteal sequence'}]},
+  follicular:{cls:'follicular',label:'Follicular phase',heading:'Build & energise',sub:'Oestrogen rising. Your best week for hard problems and new skills.',movTitle:'Bouldering session',movBody:'Follicular phase — coordination at its peak. Good session for technical problems and project attempts.',movChip:'Climbing',movChipCls:'chip-navy',sugTitle:'Technical + one project attempt',sugBody:'Coordination is strong this week. Warm up on V3s, 20 min footwork on slab, then 3–4 focused project attempts. Finish with open-hand pulling on jugs. Skip full crimps on right hand.',insights:[{c:'var(--green)',t:'Oestrogen rising — strength, coordination and motivation are all building this week'},{c:'var(--purple)',t:'Good time to try a project boulder problem — your pain tolerance and confidence are higher right now'},{c:'var(--navy)',t:'Pumpkin seeds and leafy greens support oestrogen metabolism — good foods to lean into'}]},
+  ovulatory:{cls:'ovulatory',label:'Ovulatory phase',heading:'Peak performance',sub:'Oestrogen at its peak. Your strongest, sharpest week of the month.',movTitle:'High intensity session',movBody:'Ovulatory phase — your peak performance window. Go for your hardest problems. Strength, coordination and reaction time are all at maximum.',movChip:'Peak week',movChipCls:'chip-amber',sugTitle:'Go for your project grade',sugBody:'This is genuinely your strongest week. Attempt your project or try a grade up. Warm up thoroughly first — ligament laxity is slightly higher around ovulation.',insights:[{c:'var(--amber)',t:'Oestrogen peaking — this is your strongest week of the month, physically and mentally'},{c:'var(--green)',t:'Ideal time to attempt your project grade or try a new movement pattern you\'ve been working on'},{c:'var(--pink)',t:'Ligament laxity increases slightly around ovulation — warm up thoroughly before hard sessions'}]},
+  luteal:{cls:'luteal',label:'Luteal phase',heading:'Sustain & recover',sub:'Progesterone rising. Prioritise sleep, warmth and magnesium.',movTitle:'Moderate climbing or yoga',movBody:'Luteal phase — energy may fluctuate day to day. Keep sessions moderate. Swap a climbing session for yoga if your body is asking for it. That\'s not a failure.',movChip:'Restore',movChipCls:'chip-purple',sugTitle:'Moderate intensity, listen in',sugBody:'Your body may feel different day to day this week. Climb at a comfortable intensity, finish before exhaustion, and prioritise the antagonist work. Add the luteal yoga sequence on harder days.',insights:[{c:'var(--purple)',t:'Progesterone rising — cravings and low mood can appear, especially days 21–28. This is hormonal, not a character flaw'},{c:'var(--amber)',t:'Magnesium reduces PMS symptoms significantly — dark chocolate, pumpkin seeds, leafy greens are your friends'},{c:'var(--pink)',t:'Sleep is often disrupted in luteal phase. Prioritise getting to bed by 10pm this week — you\'re an early bird anyway'}]}
+};
+
+// ── CYCLE CALCULATION ──
+function getCycleDay(){
+  const start=S.get('lastPeriodDate');
+  if(!start)return{day:1,phase:'follicular'};
+  const ms=Date.now()-new Date(start).getTime();
+  const day=Math.floor(ms/(1000*60*60*24))+1;
+  const cycleLen=S.get('cycleLength')||33;
+  const d=((day-1)%cycleLen)+1;
+  let phase='follicular';
+  if(d<=5)phase='menstrual';
+  else if(d<=13)phase='follicular';
+  else if(d<=16)phase='ovulatory';
+  else phase='luteal';
+  return{day:d,phase,cycleLen};
+}
+
+function getDaysLeft(day,phase,cycleLen){
+  const ends={menstrual:5,follicular:13,ovulatory:16,luteal:cycleLen};
+  const left=ends[phase]-day+1;
+  return left<=0?1:left;
+}
+
+// ── RENDER HOME ──
+function renderHome(){
+  const {day,phase,cycleLen}=getCycleDay();
+  const p=PHASES[phase];
+  const banner=document.getElementById('phase-banner-home');
+  banner.className='phase-banner '+phase;
+  document.getElementById('pb-eyebrow').textContent=p.label;
+  document.getElementById('pb-heading').textContent=p.heading;
+  document.getElementById('pb-sub').textContent=p.sub;
+  document.getElementById('pb-day').innerHTML='Day '+day+'<br><span style="font-size:10px;opacity:0.7">'+getDaysLeft(day,phase,cycleLen)+' days left</span>';
+  document.getElementById('home-day-label').textContent='Day '+day;
+  document.getElementById('home-move-title').textContent=p.movTitle;
+  document.getElementById('home-move-body').textContent=p.movBody;
+  const chip=document.getElementById('home-move-chip');
+  chip.textContent=p.movChip;chip.className='chip '+p.movChipCls;
+  document.getElementById('home-insights').innerHTML=p.insights.map(i=>`<div class="insight-item"><div class="i-bar" style="background:${i.c}"></div><div class="i-text">${i.t}</div></div>`).join('');
+  document.getElementById('move-phase-label').textContent=p.label;
+  document.getElementById('yoga-phase-label').textContent=p.label+' · '+phase.charAt(0).toUpperCase()+phase.slice(1);
+  const sug=document.getElementById('move-suggested');
+  sug.className='suggested '+phase;
+  sug.querySelector('.suggested-eyebrow').textContent='Suggested · '+p.label;
+  document.getElementById('sug-title').textContent=p.sugTitle;
+  document.getElementById('sug-body').textContent=p.sugBody;
+}
+
+// ── ONBOARDING ──
+function checkOnboard(){
+  document.getElementById('ob-date').max=new Date().toISOString().split('T')[0];
+  if(S.get('lastPeriodDate')){
+    document.getElementById('onboard').style.display='none';
+    renderHome();renderCalendar();renderYogaLog();
+  }
+}
+function saveOnboard(){
+  const d=document.getElementById('ob-date').value;
+  if(!d)return;
+  S.set('lastPeriodDate',d);
+  S.set('cycleLength',33);
+  document.getElementById('onboard').style.display='none';
+  renderHome();renderCalendar();
+}
+
+// ── PERIOD MODAL ──
+function openPeriodModal(){document.getElementById('period-modal').classList.add('open')}
+function closePeriodModal(){document.getElementById('period-modal').classList.remove('open')}
+function logPeriodStart(){
+  const today=new Date().toISOString().split('T')[0];
+  S.set('lastPeriodDate',today);
+  S.push('periodDates',today);
+  closePeriodModal();
+  renderHome();renderCalendar();
+  const btn=document.getElementById('period-log-btn');
+  btn.textContent='🩸 Period logged ✓';
+  btn.classList.add('active-period');
+  setTimeout(()=>{btn.textContent='🩸 Log period start';btn.classList.remove('active-period');},3000);
+}
+
+// ── CALENDAR ──
+function renderCalendar(){
+  const now=new Date();
+  document.getElementById('log-month').textContent=now.toLocaleDateString('en-NZ',{month:'long',year:'numeric'});
+  const year=now.getFullYear(),month=now.getMonth();
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const heads=document.getElementById('cal-heads');
+  const grid=document.getElementById('cal-grid');
+  heads.innerHTML=['S','M','T','W','T','F','S'].map(d=>`<div class="cal-head">${d}</div>`).join('');
+  const sessions=S.get('sessionLog')||[];
+  const yogas=S.get('yogaLog')||[];
+  const suppDays=S.get('suppLog')||[];
+  const periods=S.get('periodDates')||[];
+  const todayStr=now.toISOString().split('T')[0];
+  let cells='';
+  for(let i=0;i<firstDay;i++)cells+='<div></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=ds===todayStr;
+    const dots=[];
+    if(sessions.some(s=>s.date===ds))dots.push(`<div class="cal-dot" style="background:var(--green)"></div>`);
+    if(yogas.some(y=>y.date===ds))dots.push(`<div class="cal-dot" style="background:var(--purple)"></div>`);
+    if(suppDays.includes(ds))dots.push(`<div class="cal-dot" style="background:var(--amber)"></div>`);
+    if(periods.includes(ds))dots.push(`<div class="cal-dot" style="background:var(--pink)"></div>`);
+    cells+=`<div class="cal-day${isToday?' today':''}"><div class="cal-num">${d}</div><div class="cal-dots">${dots.join('')}</div></div>`;
+  }
+  grid.innerHTML=cells;
+}
+
+// ── MEALS ──
+const MEALS={
+  breakfast:[
+    {n:'Eggs on sourdough with spinach',w:'Eggs provide choline for hormone metabolism and complete protein for muscle repair. Sourdough is fermented — easier on your gut.',c:['High protein','Gut-friendly','5 min']},
+    {n:'PB on sourdough with banana',w:'Peanut butter provides healthy fats and protein. Banana gives quick energy before a session. Low prep, genuinely filling.',c:['Quick energy','Fibre','3 min']},
+    {n:'Greek yoghurt with blueberries and sunflower seeds',w:'Your go-to. Yoghurt provides probiotics for gut health. Sunflower seeds add vitamin E and selenium — both support hormone balance.',c:['Gut-friendly','High protein','2 min']},
+    {n:'Porridge with nut butter and pumpkin seeds',w:'Oats stabilise blood sugar — reduces energy crashes. Pumpkin seeds are your best dietary magnesium source.',c:['Blood sugar','Fibre','5 min']},
+    {n:'Overnight oats with chia seeds and nut butter',w:'Make the night before — zero morning effort. Chia seeds are high in omega-3s and fibre. Keeps you full for hours.',c:['No effort','High fibre','0 min']},
+    {n:'Scrambled tofu on sourdough with spinach',w:'Plant-based complete protein. Tofu contains phytoestrogens that gently support oestrogen balance. Spinach adds iron and magnesium.',c:['High protein','Hormone support','10 min']},
+    {n:'Yoghurt with hemp seeds, pumpkin seeds and blueberries',w:'Hemp seeds have one of the best plant amino acid profiles. Pumpkin seeds are your best magnesium source. Blueberries are low fructose.',c:['High protein','Magnesium','3 min']}
+  ],
+  lunch:[
+    {n:'Tofu quinoa bowl (last night\'s leftovers)',w:'Make extra at dinner — this is your easiest lunch. Quinoa is a complete protein. Reheats well, genuinely filling.',c:['High protein','Meal prep','2 min']},
+    {n:'Halloumi and roasted veg wrap — sandwich pressed',w:'Halloumi is high in protein and calcium. The press makes it feel like a proper meal. Roast veg the night before or use frozen.',c:['High protein','Filling','10 min']},
+    {n:'Black bean and cheese quesadilla — pressed',w:'Black beans are one of the best plant-based protein and fibre sources. The press gives a crispy satisfying texture.',c:['High protein','High fibre','8 min']},
+    {n:'Tofu and pesto wrap — pressed flat',w:'Quick to assemble, press gives texture. Pesto adds healthy fats. Add spinach for iron.',c:['Quick','High protein','5 min']},
+    {n:'Lentil soup (batch cooked Sunday)',w:'Make once, eat four times. Lentils are your best plant-based iron source. High fibre, gut-supportive.',c:['Batch cook','Iron-rich','Reheat']},
+    {n:'Brown rice with edamame, cucumber and miso dressing',w:'No heating needed. Edamame is one of the highest protein plant foods. Miso dressing is fermented — gut-friendly.',c:['No heat','High protein','5 min']},
+    {n:'Chickpea and roasted veg tray — reheated',w:'Make the night before. Chickpeas provide protein, fibre and iron.',c:['Batch cook','High fibre','Reheat']},
+    {n:'Egg fried rice with frozen veg',w:'Simple, filling, high protein. Frozen veg means no prep. Great if you have leftover rice.',c:['High protein','Quick','10 min']},
+    {n:'White bean and kale soup',w:'White beans are high in protein and fibre. Kale supports liver oestrogen processing.',c:['Batch cook','Hormone support','Reheat']}
+  ],
+  dinner:[
+    {n:'Tofu with quinoa and roasted veg',w:'Your go-to — high protein, high fibre, easy to adapt. Make extra for tomorrow\'s lunch.',c:['High protein','High fibre','20 min']},
+    {n:'Beans and veggie salad',w:'Simple, no-cook, endlessly adaptable. Use tinned beans for easy protein. Add seeds for extra nutrients.',c:['No cook','High fibre','5 min']},
+    {n:'Edamame bowl with rice and sesame dressing',w:'Edamame is one of the best complete plant proteins. Sesame provides calcium and lignans that support oestrogen balance.',c:['High protein','Hormone support','10 min']},
+    {n:'Vege sausages with roasted potato and greens',w:'Easy and satisfying. Look for sausages with at least 15g protein per serving. Greens add iron and folate.',c:['Easy','Comfort','20 min']},
+    {n:'Eggs on rice or quinoa',w:'Simple and filling. Eggs provide all essential amino acids. Good recovery meal after a session.',c:['High protein','Quick','10 min']},
+    {n:'Black bean tacos with avocado and slaw',w:'Black beans plus corn tortilla makes a complete protein. Cabbage slaw is great for gut bacteria diversity.',c:['High fibre','Gut-friendly','15 min']},
+    {n:'Red lentil dhal with rice',w:'Lentils are your best plant-based iron source. High protein, high fibre, cheap and easy to make.',c:['Iron-rich','High fibre','25 min']},
+    {n:'Chickpea and spinach curry',w:'Chickpeas provide protein and iron. Turmeric supports gut health and reduces inflammation.',c:['Iron-rich','Gut-friendly','20 min']},
+    {n:'Halloumi with roasted veg and quinoa',w:'Halloumi is high in protein and calcium. Quinoa makes it a complete amino acid profile.',c:['High protein','Comfort','25 min']},
+    {n:'Tofu scramble with sweet potato',w:'Sweet potato provides complex carbs for sustained energy. Tofu scramble is a satisfying high-protein dinner.',c:['High protein','Sustained energy','20 min']},
+    {n:'Gnocchi with pesto, peas and spinach',w:'Ten minutes. Peas add protein and fibre. Spinach adds iron. Easy comfort food.',c:['10 min','Comfort','Easy']},
+    {n:'Veggie burger with roasted potato wedges',w:'Choose a burger with at least 15–20g protein. Easy, no skill required.',c:['Easy','Comfort','20 min']},
+    {n:'Frittata with whatever veg you have',w:'One pan, 20 minutes, uses up any veg in the fridge. Eggs provide complete protein.',c:['No waste','High protein','20 min']}
+  ]
+};
+const mealIdx={breakfast:0,lunch:0,dinner:0};
+const chipCls=['chip-navy','chip-green','chip-amber'];
+function renderMeal(tab){
+  const m=MEALS[tab][mealIdx[tab]];
+  const sfx=tab==='breakfast'?'b':tab==='lunch'?'l':'d';
+  document.getElementById('meal-name-'+sfx).textContent=m.n;
+  document.getElementById('meal-why-'+sfx).textContent=m.w;
+  document.getElementById('meal-chips-'+sfx).innerHTML=m.c.map((c,i)=>`<span class="chip ${chipCls[i]}">${c}</span>`).join('');
+}
+function shuffleMeal(tab){mealIdx[tab]=(mealIdx[tab]+1)%MEALS[tab].length;renderMeal(tab);}
+
+// ── YOGA LOG ──
+function logYoga(){
+  const inp=document.getElementById('yoga-input');
+  const val=inp.value.trim();if(!val)return;
+  const today=new Date().toISOString().split('T')[0];
+  S.push('yogaLog',{name:val,date:today});
+  inp.value='';renderYogaLog();renderCalendar();
+}
+function renderYogaLog(){
+  const log=S.get('yogaLog')||[];
+  const card=document.getElementById('yoga-log-card');
+  const list=document.getElementById('yoga-log-list');
+  if(!log.length){card.style.display='none';return;}
+  card.style.display='block';
+  list.innerHTML=[...log].reverse().slice(0,6).map(e=>`<div class="pose-row"><span class="pose-name">${e.name}</span><span class="pose-dur">${e.date}</span></div>`).join('');
+}
+
+// ── SESSION LOG ──
+function logClimbSession(){
+  const today=new Date().toISOString().split('T')[0];
+  const types=[...document.querySelectorAll('#mt-climb .pill.sel')].map(p=>p.textContent);
+  const grades=[...document.querySelectorAll('.g-chip.sent')].map(g=>g.textContent);
+  const projects=[...document.querySelectorAll('.g-chip.project')].map(g=>g.textContent);
+  const notes=document.getElementById('climb-notes').value;
+  S.push('sessionLog',{date:today,type:'climbing',sessionTypes:types,grades,projects,notes});
+  markDone('log-climb-btn','Session logged ✓');
+  renderCalendar();
+}
+function logOtherSession(){
+  const today=new Date().toISOString().split('T')[0];
+  const types=[...document.querySelectorAll('#mt-other .pill.sel')].map(p=>p.textContent);
+  const notes=document.getElementById('other-notes').value;
+  S.push('sessionLog',{date:today,type:'other',sessionTypes:types,notes});
+  markDone('log-other-btn','Activity logged ✓');
+  renderCalendar();
+}
+
+// ── SUPPLEMENTS ──
+function tapSupp(id){
+  const btn=document.getElementById(id);
+  const lbl=btn.querySelector('.supp-label');
+  const ico=btn.querySelector('.supp-icon');
+  if(btn.classList.contains('taken')){
+    btn.classList.remove('taken');
+    if(id==='si'){btn.classList.add('remind');lbl.textContent='Iron — take today';ico.textContent='!';}
+    else{lbl.textContent='Creatine & Magnesium';ico.textContent='⬡';}
+  } else {
+    btn.classList.remove('remind');btn.classList.add('taken');
+    lbl.textContent=id==='si'?'Iron taken ✓':'Creatine & Mag ✓';
+    ico.textContent='✓';
+    const today=new Date().toISOString().split('T')[0];
+    const suppLog=S.get('suppLog')||[];
+    if(!suppLog.includes(today)){suppLog.push(today);S.set('suppLog',suppLog);}
+    renderCalendar();
+  }
+}
+
+// ── WINS ──
+function addWin(){
+  const inp=document.getElementById('win-input');
+  const val=inp.value.trim();if(!val)return;
+  S.push('wins',{text:val,date:new Date().toISOString().split('T')[0]});
+  const item=document.createElement('div');
+  item.className='win-item';
+  item.innerHTML=`<div class="win-dot" style="background:var(--green-bg)">✦</div><div><div class="win-title">${val}</div><div class="win-sub">Just now</div></div>`;
+  document.getElementById('wins-list').insertBefore(item,document.getElementById('wins-list').firstChild);
+  inp.value='';
+}
+
+// ── NAV & TABS ──
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function switchTab(panelId,btn,tabRowId){
+  const row=document.getElementById(tabRowId)||btn.closest('.tab-row');
+  if(row)row.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  else btn.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const panels=btn.closest('.screen').querySelectorAll('.tab-panel');
+  panels.forEach(p=>p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+}
+function togPill(btn){btn.classList.toggle('sel')}
+function cycleG(btn){
+  if(btn.classList.contains('project')){btn.classList.remove('project');return;}
+  if(btn.classList.contains('sent')){btn.classList.add('project');btn.classList.remove('sent');return;}
+  btn.classList.add('sent');
+}
+function markDone(id,label){
+  const btn=document.getElementById(id);
+  btn.className='btn btn-done';btn.textContent=label||'Done ✓';
+}
+function selE(btn,val){
+  document.querySelectorAll('.e-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  S.push('energyLog',{date:new Date().toISOString().split('T')[0],val});
+}
+
+// ── DATE ──
+const now=new Date();
+const hr=now.getHours();
+document.getElementById('hdate-top').textContent=(hr<12?'Morning':'hr<17?Afternoon':'Evening')+' · '+now.toLocaleDateString('en-NZ',{weekday:'short',day:'numeric',month:'short'});
+
+// ── INIT ──
+checkOnboard();
+renderMeal('breakfast');renderMeal('lunch');renderMeal('dinner');
+
+// ── SERVICE WORKER ──
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
